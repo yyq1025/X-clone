@@ -1,0 +1,63 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["omitApi"]
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String   @unique
+  avatar     String?
+  bio        String?
+  cover      String?
+  name       String
+  username   String   @unique
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  followedBy Follow[] @relation("followedBy")
+  following  Follow[] @relation("following")
+}
+
+model Post {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  postId    String   @unique @default(cuid())
+  ownerId   String
+  parentId  String?
+  parent    Post?    @relation("PostReplies", fields: [parentId], references: [postId], onDelete: NoAction, onUpdate: NoAction)
+  content   String
+  mentions  String[]
+  createdAt DateTime @default(now())
+  replies   Post[]   @relation("PostReplies")
+  likes     Like[]
+}
+
+model Like {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  postId    String
+  post      Post     @relation(fields: [postId], references: [postId])
+  userId    String
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId])
+}
+
+model Follow {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  followedById String
+  followedBy   User     @relation("followedBy", fields: [followedById], references: [userId])
+  followingId  String
+  following    User     @relation("following", fields: [followingId], references: [userId])
+  createdAt    DateTime @default(now())
+
+  @@unique([followedById, followingId])
+}
