@@ -1,103 +1,116 @@
-"use server";
+"use client";
 
-import { PAGE_SIZE } from "@/lib/db/constant";
-import prisma from "@/lib/prisma";
-import type { Post } from "@prisma/client";
+import { getPagination, PAGE_SIZE } from "@/lib/common/pagination";
+import { supabase } from "@/lib/supabaseClient";
+import type { Tables } from "@/lib/types/supabase";
 
 export const createPost = async (
-  post: Pick<Post, "parentId" | "ownerId" | "content" | "mentions">,
+  post: Pick<
+    Tables<"posts">,
+    "parent_id" | "owner_id" | "content" | "mentions"
+  >,
 ) => {
-  return prisma.post.create({ data: post });
+  const { data, error } = await supabase.from("posts").insert(post).select();
+  if (error) {
+    throw error;
+  }
+  return data[0];
 };
 
 export const getPostById = async (postId: string) => {
-  console.log("getPostById", postId);
-  return prisma.post.findUnique({ where: { postId }, omit: { id: true } });
+  const { data, error } = await supabase
+    .from("posts")
+    .select()
+    .eq("id", postId)
+    .single();
+  if (error) {
+    throw error;
+  }
+  return data;
 };
 
 export const getPostsByParentId = async ({
   parentId,
-  cursor,
+  page,
 }: {
   parentId: string | null;
-  cursor?: string;
+  page: number;
 }) => {
-  const queryResults = await prisma.post.findMany({
-    where: { parentId },
-    take: PAGE_SIZE,
-    skip: cursor ? 1 : 0,
-    cursor: cursor ? { postId: cursor } : undefined,
-    orderBy: { createdAt: "desc" },
-    omit: {
-      id: true,
-    },
-  });
+  const { from, to } = getPagination(page);
+  const query = parentId
+    ? supabase.from("posts").select().eq("parent_id", parentId).range(from, to)
+    : supabase.from("posts").select().is("parent_id", null).range(from, to);
+  const { data, error } = await query;
+  if (error) {
+    throw error;
+  }
 
   return {
-    posts: queryResults,
-    nextCursor:
-      queryResults.length === PAGE_SIZE
-        ? queryResults[queryResults.length - 1].postId
-        : null,
+    posts: data,
+    next: data.length === PAGE_SIZE ? page + 1 : null,
   };
 };
 
 export const getPostsByUserId = async ({
   userId,
-  cursor,
+  page,
 }: {
   userId: string;
-  cursor?: string;
+  page: number;
 }) => {
-  const queryResults = await prisma.post.findMany({
-    where: { ownerId: userId, parentId: null },
-    take: PAGE_SIZE,
-    skip: cursor ? 1 : 0,
-    cursor: cursor ? { postId: cursor } : undefined,
-    orderBy: { createdAt: "desc" },
-    omit: {
-      id: true,
-    },
-  });
+  const { from, to } = getPagination(page);
+  const { data, error } = await supabase
+    .from("posts")
+    .select()
+    .eq("owner_id", userId)
+    .is("parent_id", null)
+    .range(from, to);
+  if (error) {
+    throw error;
+  }
 
   return {
-    posts: queryResults,
-    nextCursor: queryResults.length
-      ? queryResults[queryResults.length - 1].postId
-      : null,
+    posts: data,
+    next: data.length === PAGE_SIZE ? page + 1 : null,
   };
 };
 
-export const getRepliesCount = async (postId: string) => {
-  return prisma.post.count({ where: { parentId: postId } });
+export const getRepliesCountByPostId = async (postId: string) => {
+  const { count, error } = await supabase
+    .from("posts")
+    .select("*", { count: "exact", head: true })
+    .eq("parent_id", postId);
+  if (error) throw error;
+  return count;
 };
 
 export const getPostsCountByUserId = async (userId: string) => {
-  return prisma.post.count({ where: { ownerId: userId } });
+  const { count, error } = await supabase
+    .from("posts")
+    .select("*", { count: "exact", head: true })
+    .eq("owner_id", userId);
+  if (error) throw error;
+  return count;
 };
 
 export const getRepliesByUserId = async ({
   userId,
-  cursor,
+  page,
 }: {
   userId: string;
-  cursor?: string;
+  page: number;
 }) => {
-  const queryResults = await prisma.post.findMany({
-    where: { ownerId: userId, parentId: { not: null } },
-    take: PAGE_SIZE,
-    skip: cursor ? 1 : 0,
-    cursor: cursor ? { postId: cursor } : undefined,
-    orderBy: { createdAt: "desc" },
-    omit: {
-      id: true,
-    },
-  });
+  const { from, to } = getPagination(page);
+  const { data, error } = await supabase
+    .from("posts")
+    .select()
+    .eq("owner_id", userId)
+    .not("parent_id", "is", null)
+    .range(from, to);
+  if (error) throw error;
 
   return {
-    posts: queryResults,
-    nextCursor: queryResults.length
-      ? queryResults[queryResults.length - 1].postId
-      : null,
+    posts: data,
+    next: data.length === PAGE_SIZE ? page + 1 : null,
   };
 };

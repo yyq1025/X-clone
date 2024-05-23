@@ -2,33 +2,36 @@
 
 import Post from "@/components/post/post";
 import { useInfiniteScroll } from "@/lib/hooks/useInfiniteScroll";
-import { useLikedPostsByUserId } from "@/lib/hooks/useLike";
+import { useRepliesByUserId } from "@/lib/hooks/usePost";
+import { useUserByUsername } from "@/lib/hooks/useUser";
 
 export default function Replies({
   params,
 }: {
-  params: { profileUserId: string };
+  params: { profileUsername: string };
 }) {
-  const { profileUserId } = params;
+  const { profileUsername } = params;
+  const { data: profileUser } = useUserByUsername(profileUsername);
   const {
     data: replies,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useLikedPostsByUserId(profileUserId);
+  } = useRepliesByUserId(profileUser?.id);
 
   useInfiniteScroll({
     fetchMore: fetchNextPage,
     hasMore: hasNextPage,
     isFetching: isFetchingNextPage,
   });
+
   return (
     <>
       {replies?.pages.map((page) =>
-        page.likedPosts.map((post) => (
+        page.posts.map((post) => (
           <Post
-            key={post.post.postId}
-            postId={post.post.postId}
+            key={post.id}
+            postId={post.id}
             mode="reply"
             className="border-b"
           />

@@ -1,70 +1,81 @@
-"use server";
+"use client";
 
-import { PAGE_SIZE } from "@/lib/db/constant";
-import prisma from "@/lib/prisma";
-import type { Like } from "@prisma/client";
+import { getPagination, PAGE_SIZE } from "@/lib/common/pagination";
+import { supabase } from "@/lib/supabaseClient";
+import type { Tables } from "@/lib/types/supabase";
 
 export const getLikesCountByPostId = async (postId: string) => {
-  return prisma.like.count({ where: { postId } });
+  const { count, error } = await supabase
+    .from("likes")
+    .select("*", { count: "exact", head: true })
+    .eq("post_id", postId);
+  if (error) throw error;
+  return count;
 };
 
 export const getLiked = async ({
-  postId,
-  userId,
-}: Pick<Like, "postId" | "userId">) => {
-  return !!(await prisma.like.findFirst({ where: { postId, userId } }));
+  post_id,
+  user_id,
+}: Pick<Tables<"likes">, "post_id" | "user_id">) => {
+  const { count, error } = await supabase
+    .from("likes")
+    .select("*", { count: "exact", head: true })
+    .eq("post_id", post_id)
+    .eq("user_id", user_id);
+  if (error) throw error;
+  return !!count;
 };
 
 export const likePost = async ({
-  postId,
-  userId,
-}: Pick<Like, "postId" | "userId">) => {
-  await prisma.like.upsert({
-    where: { postId_userId: { postId, userId } },
-    update: {},
-    create: { postId, userId },
-  });
+  post_id,
+  user_id,
+}: Pick<Tables<"likes">, "post_id" | "user_id">) => {
+  const { error } = await supabase
+    .from("likes")
+    .upsert({ post_id, user_id }, { ignoreDuplicates: true });
+  if (error) throw error;
   return true;
 };
 
 export const unlikePost = async ({
-  postId,
-  userId,
-}: Pick<Like, "postId" | "userId">) => {
-  await prisma.like.delete({ where: { postId_userId: { postId, userId } } });
+  post_id,
+  user_id,
+}: Pick<Tables<"likes">, "post_id" | "user_id">) => {
+  const { error } = await supabase
+    .from("likes")
+    .delete()
+    .match({ post_id, user_id });
+  if (error) throw error;
   return false;
 };
 
 export const getLikesCountByUserId = async (userId: string) => {
-  return prisma.like.count({ where: { userId } });
+  const { count, error } = await supabase
+    .from("likes")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", userId);
+  if (error) throw error;
+  return count;
 };
 
 export const getLikedPostsByUserId = async ({
   userId,
-  cursor,
+  page,
 }: {
   userId: string;
-  cursor?: string;
+  page: number;
 }) => {
-  const queryResults = await prisma.like.findMany({
-    where: { userId },
-    take: PAGE_SIZE,
-    skip: cursor ? 1 : 0,
-    cursor: cursor ? { id: cursor } : undefined,
-    orderBy: { createdAt: "desc" },
-    select: {
-      id: true,
-      post: {
-        omit: { id: true },
-      },
-    },
-  });
+  const { from, to } = getPagination(page);
+  const { data, error } = await supabase
+    .from("likes")
+    .select("posts(*)")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .range(from, to);
+  if (error) throw error;
 
   return {
-    likedPosts: queryResults,
-    nextCursor:
-      queryResults.length === PAGE_SIZE
-        ? queryResults[queryResults.length - 1].id
-        : null,
+    likedPosts: data,
+    next: data.length === PAGE_SIZE ? page + 1 : null,
   };
 };

@@ -1,13 +1,16 @@
+"use client";
+
+import PostCreate from "@/components/post/post-create";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button, ButtonProps } from "@/components/ui/button";
-import { usePostById, useRepliesCount } from "@/lib/hooks/usePost";
+import { usePostById } from "@/lib/hooks/usePost";
 import { useUserById, useUsersByIds } from "@/lib/hooks/useUser";
+import { usePostModalStore } from "@/lib/stores/postModal";
 import { Dialog, DialogPanel } from "@headlessui/react";
-import { X } from "lucide-react";
-import { FC, MouseEvent, ReactNode, useState } from "react";
 import dayjs from "dayjs";
-
-import PostCreate from "./post-create";
+import { X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { FC, ReactNode } from "react";
 
 interface ReplyModalProps {
   postId?: string;
@@ -17,43 +20,37 @@ interface ReplyModalProps {
   }) => ReactNode;
 }
 
-const ReplyModal: FC<ReplyModalProps> = ({ postId, renderTrigger }) => {
-  const [open, setOpen] = useState(false);
+const ReplyModal: FC<ReplyModalProps> = () => {
+  const { parentId, setParentId } = usePostModalStore();
+  const router = useRouter();
 
-  const { data: parent } = usePostById(postId);
+  const { data: parent } = usePostById(parentId);
   const { data: parentOwner } = useUserById(parent?.owner_id);
-
   const { users: parentMentions } = useUsersByIds(parent?.mentions);
 
-  const { data: repliesCount } = useRepliesCount(parent?.id);
-
+  const handleClose = () => {
+    setParentId(null);
+    history.length > 1 ? history.back() : router.push("/");
+  };
+  
   return (
-    <>
-      {renderTrigger({
-        buttonProps: {
-          onClick: (e: MouseEvent) => {
-            e.preventDefault();
-            setOpen(true);
-          },
-        },
-        repliesCount: repliesCount,
-      })}
-      <Dialog
-        open={open}
-        onClose={() => setOpen(false)}
-        className="fixed top-0 z-[2] flex h-full w-screen items-start justify-center bg-black/40"
-      >
-        <DialogPanel className="relative top-[5%] flex min-w-[600px] shrink flex-col rounded-xl bg-white">
-          <div className="flex h-[53px] w-full items-center px-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setOpen(false)}
-              className="rounded-full p-2"
-            >
-              <X size={20} />
-            </Button>
-          </div>
+    <Dialog
+      open={true}
+      onClose={handleClose}
+      className="fixed top-0 z-[2] flex h-full w-screen items-start justify-center bg-black/40"
+    >
+      <DialogPanel className="relative top-[5%] flex min-w-[600px] shrink flex-col rounded-xl bg-white">
+        <div className="flex h-[53px] w-full items-center px-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleClose}
+            className="rounded-full p-2"
+          >
+            <X size={20} />
+          </Button>
+        </div>
+        {parent?.id && (
           <div className="flex flex-col">
             <div className="flex flex-col px-4">
               <div className="pt-3" />
@@ -79,7 +76,7 @@ const ReplyModal: FC<ReplyModalProps> = ({ postId, renderTrigger }) => {
                       </span>
                       <span className="text-gray-500">·</span>
                       <span className="text-gray-500">
-                      {dayjs(parent?.created_at).format("MMM DD")}
+                        {dayjs(parent?.created_at).format("MMM DD")}
                       </span>
                     </div>
                   </div>
@@ -101,14 +98,14 @@ const ReplyModal: FC<ReplyModalProps> = ({ postId, renderTrigger }) => {
               </p>
             </div>
           </div>
-          <PostCreate
-            parentId={parent?.id}
-            afterSubmit={() => setOpen(false)}
-            minRows={3}
-          />
-        </DialogPanel>
-      </Dialog>
-    </>
+        )}
+        <PostCreate
+          parentId={parent?.id}
+          afterSubmit={handleClose}
+          minRows={3}
+        />
+      </DialogPanel>
+    </Dialog>
   );
 };
 

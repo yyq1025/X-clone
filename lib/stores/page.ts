@@ -1,7 +1,7 @@
 import { create } from "zustand";
 
 interface State {
-    currentPage: "home" | "notifications" | "bookmarks" | "profile" | "status";
+    currentPage: "home" | "notifications" | "bookmarks" | "profile" | "other";
 }
 
 interface Actions {

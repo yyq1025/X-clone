@@ -1,5 +1,6 @@
 "use client";
 
+import { optimiticUpdate } from "@/lib/common/optimistic";
 import {
   getLiked,
   getLikedPostsByUserId,
@@ -9,7 +10,7 @@ import {
   unlikePost,
 } from "@/lib/db/like";
 import { queryClient } from "@/lib/queryClient";
-import type { Like } from "@prisma/client";
+import { Tables } from "@/lib/types/supabase";
 import {
   skipToken,
   useInfiniteQuery,
@@ -34,53 +35,37 @@ export const useLiked = ({
 }) => {
   return useQuery({
     queryKey: ["liked", userId, postId],
-    queryFn: userId && postId ? () => getLiked({ userId, postId }) : skipToken,
+    queryFn:
+      userId && postId
+        ? () => getLiked({ user_id: userId, post_id: postId })
+        : skipToken,
     enabled: !!userId && !!postId,
   });
 };
 
-const getPreviousData = async ({
-  userId,
-  postId,
-}: Pick<Like, "userId" | "postId">) => {
-  const previousLiked = queryClient.getQueryData([
-    "liked",
-    userId,
-    postId,
-  ]) as boolean;
-  const previousLikesCount = queryClient.getQueryData([
-    "likesCount",
-    "postId",
-    postId,
-  ]) as number;
-
-  return { previousLiked, previousLikesCount };
-};
-
 export const useLikePost = () => {
   return useMutation({
-    mutationFn: likePost,
+    mutationFn: ({ userId, postId }: { userId: string; postId: string }) =>
+      likePost({ user_id: userId, post_id: postId }),
     onMutate: async ({ userId, postId }) => {
-      const { previousLiked, previousLikesCount } = await getPreviousData({
-        userId,
-        postId,
-      });
-
-      queryClient.setQueryData(["liked", userId, postId], true);
-      queryClient.setQueryData(
+      const previousLiked = await optimiticUpdate(
+        ["liked", userId, postId],
+        true,
+      );
+      const previousLikesCount = await optimiticUpdate(
         ["likesCount", "postId", postId],
-        previousLikesCount + 1,
+        (prev: number) => prev + 1,
       );
 
       return { previousLiked, previousLikesCount };
     },
-    onError: (_err, _variables, context: any) => {
+    onError: (_err, { userId, postId }, context: any) => {
       queryClient.setQueryData(
-        ["liked", context.userId, context.postId],
+        ["liked", userId, postId],
         context.previousLiked,
       );
       queryClient.setQueryData(
-        ["likesCount", "postId", context.postId],
+        ["likesCount", "postId", postId],
         context.previousLikesCount,
       );
     },
@@ -89,8 +74,6 @@ export const useLikePost = () => {
       queryClient.invalidateQueries({
         queryKey: ["likedPosts", "userId", userId],
       });
-    },
-    onSettled(_data, _err, { postId }) {
       queryClient.invalidateQueries({
         queryKey: ["likesCount", "postId", postId],
       });
@@ -100,17 +83,16 @@ export const useLikePost = () => {
 
 export const useUnlikePost = () => {
   return useMutation({
-    mutationFn: unlikePost,
+    mutationFn: ({ userId, postId }: { userId: string; postId: string }) =>
+      unlikePost({ user_id: userId, post_id: postId }),
     onMutate: async ({ userId, postId }) => {
-      const { previousLiked, previousLikesCount } = await getPreviousData({
-        userId,
-        postId,
-      });
-
-      queryClient.setQueryData(["liked", userId, postId], false);
-      queryClient.setQueryData(
+      const previousLiked = await optimiticUpdate(
+        ["liked", userId, postId],
+        false,
+      );
+      const previousLikesCount = await optimiticUpdate(
         ["likesCount", "postId", postId],
-        previousLikesCount - 1,
+        (prev: number) => prev - 1,
       );
 
       return { previousLiked, previousLikesCount };
@@ -130,8 +112,6 @@ export const useUnlikePost = () => {
       queryClient.invalidateQueries({
         queryKey: ["likedPosts", "userId", userId],
       });
-    },
-    onSettled(_data, _err, { postId }) {
       queryClient.invalidateQueries({
         queryKey: ["likesCount", "postId", postId],
       });
@@ -153,15 +133,14 @@ export const useLikedPostsByUserId = (userId?: string) => {
     queryFn: ({ pageParam }) =>
       getLikedPostsByUserId(pageParam).then((data) => {
         data.likedPosts.forEach((like) => {
-          queryClient.setQueryData(["post", like.post.postId], like.post);
+          like.posts &&
+            queryClient.setQueryData(["post", like.posts.id], like.posts);
         });
         return data;
       }),
-    initialPageParam: { userId: userId as string },
+    initialPageParam: { userId: userId as string, page: 0 },
     getNextPageParam: (lastPage) =>
-      lastPage.nextCursor
-        ? { userId: userId as string, cursor: lastPage.nextCursor }
-        : null,
+      lastPage.next ? { userId: userId as string, page: lastPage.next } : null,
     enabled: !!userId,
   });
 };

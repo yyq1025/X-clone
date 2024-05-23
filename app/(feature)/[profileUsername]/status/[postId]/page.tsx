@@ -22,25 +22,25 @@ import { useEffect, useRef } from "react";
 export default function Status({
   params,
 }: {
-  params: { profileUserId: string; postId: string };
+  params: { profileUsername: string; postId: string };
 }) {
   const { postId } = params;
   const { setCurrentPage } = usePageStore();
 
   useEffect(() => {
-    setCurrentPage("status");
+    setCurrentPage("other");
   }, [setCurrentPage]);
 
   const { data: post } = usePostById(postId);
-  const { data: parent } = useParentPosts(post?.parentId);
-  const { data: owner } = useUserById(post?.ownerId);
+  const { data: parent } = useParentPosts(post?.parent_id);
+  const { data: owner } = useUserById(post?.owner_id);
   const { users: mentions } = useUsersByIds(post?.mentions);
   const {
     data: replies,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = usePostsByParentId(post?.postId);
+  } = usePostsByParentId(post?.id);
   useInfiniteScroll({
     fetchMore: fetchNextPage,
     hasMore: hasNextPage,
@@ -66,13 +66,11 @@ export default function Status({
       </div>
       {parent
         ?.toReversed()
-        .map((post) => (
-          <Post key={post.postId} postId={post.postId} mode="status" />
-        ))}
+        .map((post) => <Post key={post.id} postId={post.id} mode="status" />)}
       <div className="min-h-[calc(100dvh-53px)]">
         <div className="flex flex-col px-4" ref={ref}>
           <div className="flex">
-            {post?.parentId && (
+            {post?.parent_id && (
               <div className="relative mb-1 mr-2 flex basis-10 flex-col">
                 <div className="absolute inset-0 mx-auto w-0.5 bg-gray-300" />
               </div>
@@ -98,12 +96,12 @@ export default function Status({
           <div className="flex flex-col">
             <p className="mt-3">{post?.content}</p>
             <p className="my-4 text-sm text-gray-500">
-              {dayjs(post?.createdAt).format("hh:mm A · MMMM D, YYYY")}
+              {dayjs(post?.created_at).format("hh:mm A · MMMM D, YYYY")}
             </p>
             <div className="flex h-12 justify-between gap-x-1 border-y text-gray-500">
               <div className="flex flex-1 items-center justify-start">
                 <ReplyModal
-                  postId={post?.postId}
+                  postId={post?.id}
                   renderTrigger={({ buttonProps, repliesCount }) => (
                     <Button
                       variant="ghost"
@@ -121,7 +119,7 @@ export default function Status({
               </div>
               <div className="flex flex-1 items-center justify-start">
                 <Like
-                  postId={post?.postId}
+                  postId={post?.id}
                   render={({ buttonProps, liked, likesCount }) => (
                     <Button
                       {...buttonProps}
@@ -166,15 +164,11 @@ export default function Status({
               </span>
             </p>
           </div>
-          <PostCreate parentId={post?.postId} />
+          <PostCreate parentId={post?.id} />
         </div>
         {replies?.pages.map((page) =>
           page.posts.map((reply) => (
-            <Post
-              key={reply.postId}
-              postId={reply.postId}
-              className="border-b"
-            />
+            <Post key={reply.id} postId={reply.id} className="border-b" />
           )),
         )}
       </div>

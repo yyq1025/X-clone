@@ -8,18 +8,17 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { auth } from "@/lib/firebase";
 import { useUserById } from "@/lib/hooks/useUser";
 import { usePageStore } from "@/lib/stores/page";
 import { useUserStore } from "@/lib/stores/user";
-import { signOut } from "firebase/auth";
+import { supabase } from "@/lib/supabaseClient";
 import { Bell, Bookmark, Ellipsis, Feather, Home, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import Nav from "./nav";
 
 const Sidebar: React.FC = () => {
-  const logout = () => signOut(auth);
+  const logout = () => supabase.auth.signOut();
 
   const router = useRouter();
 
@@ -57,18 +56,25 @@ const Sidebar: React.FC = () => {
                 title: "Profile",
                 icon: User,
                 variant: currentPage === "profile" ? "secondary" : "ghost",
-                onClick: () => router.push(`/${userId}`),
+                onClick: () => router.push(`/${user?.username}`),
               },
             ]}
           />
-          <PostModal
+          {/* <PostModal
             renderTrigger={({ buttonProps }) => (
               <Button {...buttonProps} className="w-full">
                 <Feather size={20} className="xl:hidden" />
                 <span className="hidden xl:block">Post</span>
               </Button>
             )}
-          />
+          /> */}
+          <Button
+            onClick={() => router.push("/compose/post")}
+            className="w-full"
+          >
+            <Feather size={20} className="xl:hidden" />
+            <span className="hidden xl:block">Post</span>
+          </Button>
         </div>
         <div className="p-4">
           <DropdownMenu>

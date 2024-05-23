@@ -4,10 +4,8 @@ import Post from "@/components/post/post";
 import PostCreate from "@/components/post/post-create";
 import { useInfiniteScroll } from "@/lib/hooks/useInfiniteScroll";
 import { usePostsByParentId } from "@/lib/hooks/usePost";
-import { usePageStore } from "@/lib/stores/page";
-import { useEffect } from "react";
 
-export default function Home() {
+export default function Default() {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
     usePostsByParentId(null);
 
@@ -16,12 +14,6 @@ export default function Home() {
     hasMore: hasNextPage,
     isFetching: isFetchingNextPage,
   });
-
-  const { setCurrentPage } = usePageStore();
-
-  useEffect(() => {
-    setCurrentPage("home");
-  }, []);
 
   return (
     <>

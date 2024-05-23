@@ -1,26 +1,30 @@
-"use server";
+"use client";
 
-import prisma from "@/lib/prisma";
-import type { User } from "firebase/auth";
-
-export const createUserIfNotExists = async (
-  user: Partial<User> & { uid: string },
-) => {
-  const username =
-    user.displayName?.toLocaleLowerCase().split(" ")[0] || "anonymous";
-
-  return prisma.user.upsert({
-    where: { userId: user.uid },
-    update: {},
-    create: {
-      userId: user.uid,
-      avatar: user.photoURL,
-      name: user.displayName || "Anonymous",
-      username: username + Math.floor(Math.random() * 100000),
-    },
-  });
-};
+import { supabase } from "@/lib/supabaseClient";
 
 export const getUserById = async (userId: string) => {
-  return prisma.user.findUnique({ where: { userId } });
+  const { data, error } = await supabase
+    .from("users")
+    .select()
+    .eq("id", userId)
+    .single();
+  if (error) throw error;
+  return data;
+};
+
+export const getUserByUsername = async (username: string) => {
+  const { data, error } = await supabase
+    .from("users")
+    .select()
+    .eq("username", username)
+    .single();
+  if (error) throw error;
+  return data;
+};
+
+export const getTopUsers = async (num: number) => {
+  const { data, error } = await supabase
+    .rpc("get_top_users", { num });
+  if (error) throw error;
+  return data;
 };

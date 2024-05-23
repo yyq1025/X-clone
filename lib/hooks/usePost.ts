@@ -7,10 +7,10 @@ import {
   getPostsByUserId,
   getPostsCountByUserId,
   getRepliesByUserId,
-  getRepliesCount,
+  getRepliesCountByPostId,
 } from "@/lib/db/post";
 import { queryClient } from "@/lib/queryClient";
-import type { Post } from "@prisma/client";
+import type { Tables } from "@/lib/types/supabase";
 import {
   skipToken,
   useInfiniteQuery,
@@ -20,24 +20,40 @@ import {
 
 export const useAddPost = () => {
   return useMutation({
-    mutationFn: createPost,
-    onSuccess: (data) => {
+    mutationFn: ({
+      parentId,
+      ownerId,
+      content,
+      mentions,
+    }: {
+      parentId: string | null;
+      ownerId: string;
+      content: string;
+      mentions: string[];
+    }) =>
+      createPost({
+        parent_id: parentId,
+        owner_id: ownerId,
+        content,
+        mentions,
+      }),
+    onSuccess: (data, { parentId, ownerId }) => {
       queryClient.invalidateQueries({
-        queryKey: ["posts", "parentId", data.parentId],
+        queryKey: ["posts", "parentId", parentId],
       });
       queryClient.invalidateQueries({
-        queryKey: ["postsCount", data.ownerId],
+        queryKey: ["postsCount", ownerId],
       });
-      if (data.parentId) {
+      if (data.parent_id) {
         queryClient.invalidateQueries({
-          queryKey: ["repliesCount", data.parentId],
+          queryKey: ["repliesCount", parentId],
         });
         queryClient.invalidateQueries({
-          queryKey: ["replies", "userId", data.ownerId],
+          queryKey: ["replies", "userId", ownerId],
         });
       } else {
         queryClient.invalidateQueries({
-          queryKey: ["posts", "userId", data.ownerId],
+          queryKey: ["posts", "userId", ownerId],
         });
       }
     },
@@ -58,14 +74,14 @@ export const usePostsByParentId = (parentId?: string | null) => {
     queryFn: ({ pageParam }) =>
       getPostsByParentId(pageParam).then((data) => {
         data.posts.forEach((post) => {
-          queryClient.setQueryData(["post", post.postId], post);
+          queryClient.setQueryData(["post", post.id], post);
         });
         return data;
       }),
-    initialPageParam: { parentId: parentId as string | null },
+    initialPageParam: { parentId: parentId as string | null, page: 0 },
     getNextPageParam: (lastPage) =>
-      lastPage.nextCursor
-        ? { parentId: parentId as string | null, cursor: lastPage.nextCursor }
+      lastPage.next
+        ? { parentId: parentId as string | null, page: lastPage.next }
         : null,
     enabled: parentId !== undefined,
   });
@@ -77,15 +93,13 @@ export const usePostsByUserId = (userId?: string) => {
     queryFn: ({ pageParam }) =>
       getPostsByUserId(pageParam).then((data) => {
         data.posts.forEach((post) => {
-          queryClient.setQueryData(["post", post.postId], post);
+          queryClient.setQueryData(["post", post.id], post);
         });
         return data;
       }),
-    initialPageParam: { userId: userId as string },
+    initialPageParam: { userId: userId as string, page: 0 },
     getNextPageParam: (lastPage) =>
-      lastPage.nextCursor
-        ? { userId: userId as string, cursor: lastPage.nextCursor }
-        : null,
+      lastPage.next ? { userId: userId as string, page: lastPage.next } : null,
     enabled: !!userId,
   });
 };
@@ -93,7 +107,7 @@ export const usePostsByUserId = (userId?: string) => {
 export const useRepliesCount = (postId?: string) => {
   return useQuery({
     queryKey: ["repliesCount", postId],
-    queryFn: postId ? () => getRepliesCount(postId) : skipToken,
+    queryFn: postId ? () => getRepliesCountByPostId(postId) : skipToken,
     enabled: !!postId,
   });
 };
@@ -107,7 +121,7 @@ export const usePostsCountByUserId = (userId?: string) => {
 };
 
 const getParentPosts = async (postId: string | null) => {
-  const posts: Omit<Post, "id">[] = [];
+  const posts: Tables<"posts">[] = [];
   while (postId) {
     const post = await queryClient.fetchQuery({
       queryKey: ["post", postId],
@@ -115,7 +129,7 @@ const getParentPosts = async (postId: string | null) => {
     });
     if (!post) break;
     posts.push(post);
-    postId = post.parentId;
+    postId = post.parent_id;
   }
   return posts;
 };
@@ -134,15 +148,13 @@ export const useRepliesByUserId = (userId?: string) => {
     queryFn: ({ pageParam }) =>
       getRepliesByUserId(pageParam).then((data) => {
         data.posts.forEach((post) => {
-          queryClient.setQueryData(["post", post.postId], post);
+          queryClient.setQueryData(["post", post.id], post);
         });
         return data;
       }),
-    initialPageParam: { userId: userId as string },
+    initialPageParam: { userId: userId as string, page: 0 },
     getNextPageParam: (lastPage) =>
-      lastPage.nextCursor
-        ? { userId: userId as string, cursor: lastPage.nextCursor }
-        : null,
+      lastPage.next ? { userId: userId as string, page: lastPage.next } : null,
     enabled: !!userId,
   });
 };

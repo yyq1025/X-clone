@@ -1,6 +1,6 @@
 "use client";
 
-import { createUserIfNotExists, getUserById } from "@/lib/db/user";
+import { getTopUsers, getUserById, getUserByUsername } from "@/lib/db/user";
 import { queryClient } from "@/lib/queryClient";
 import {
   skipToken,
@@ -9,20 +9,19 @@ import {
   useQuery,
 } from "@tanstack/react-query";
 
-export const useAddUser = () => {
-  return useMutation({
-    mutationFn: createUserIfNotExists,
-    onSuccess: (data) => {
-      queryClient.setQueryData(["user", data.userId], data);
-    },
+export const useUserById = (userId?: string) => {
+  return useQuery({
+    queryKey: ["user", "userId", userId],
+    queryFn: userId ? () => getUserById(userId) : skipToken,
+    enabled: !!userId,
   });
 };
 
-export const useUserById = (userId?: string) => {
+export const useUserByUsername = (username?: string) => {
   return useQuery({
-    queryKey: ["user", userId],
-    queryFn: userId ? () => getUserById(userId) : skipToken,
-    enabled: !!userId,
+    queryKey: ["user", "username", username],
+    queryFn: username ? () => getUserByUsername(username) : skipToken,
+    enabled: !!username,
   });
 };
 
@@ -30,11 +29,24 @@ export const useUsersByIds = (userIds?: string[]) => {
   return useQueries({
     queries:
       userIds?.map((userId) => ({
-        queryKey: ["user", userId],
+        queryKey: ["user", "userId", userId],
         queryFn: () => getUserById(userId),
       })) || [],
     combine: (results) => ({
       users: results.map((r) => r.data),
     }),
+  });
+};
+
+export const useTopUsers = (num: number) => {
+  return useQuery({
+    queryKey: ["topUsers", num],
+    queryFn: () =>
+      getTopUsers(num).then((users) => {
+        users.forEach((user) => {
+          queryClient.setQueryData(["user", user.id], user);
+        });
+        return users;
+      }),
   });
 };

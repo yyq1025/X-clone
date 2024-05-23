@@ -36,8 +36,13 @@ const PostCreate: FC<PostCreateProps> = ({
     setSubmitting(true);
     const mentions = (parent?.mentions || [])
       .filter((mention) => mention !== userId)
-      .concat([userId]);
-    await addPost.mutateAsync({ parentId, ownerId: userId, content, mentions });
+      .concat([userId as string]);
+    await addPost.mutateAsync({
+      parentId,
+      ownerId: userId as string,
+      content,
+      mentions,
+    });
     setContent("");
     setSubmitting(false);
     afterSubmit?.();

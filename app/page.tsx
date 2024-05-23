@@ -2,23 +2,18 @@
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { auth } from "@/lib/firebase";
 import { useUserStore } from "@/lib/stores/user";
-import {
-  GoogleAuthProvider,
-  signInAnonymously,
-  signInWithPopup,
-} from "firebase/auth";
+import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 export default function Login() {
   const router = useRouter();
   const { userId } = useUserStore();
-  const provider = new GoogleAuthProvider();
 
-  const handleGoogleSignIn = async () => signInWithPopup(auth, provider);
-  const handleGuestSignIn = async () => signInAnonymously(auth);
+  const handleGoogleSignIn = async () =>
+    supabase.auth.signInWithOAuth({ provider: "google" });
+  const handleGuestSignIn = async () => supabase.auth.signInAnonymously();
 
   useEffect(() => {
     if (userId) router.replace("/home");

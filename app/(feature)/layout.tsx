@@ -1,14 +1,17 @@
 "use client";
 
 import Sidebar from "@/components/sidebar";
+import Suggestion from "@/components/suggestion";
 import { useUserStore } from "@/lib/stores/user";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import React, { ReactNode, useEffect } from "react";
 
 export default function MainLayout({
   children,
+  modal,
 }: Readonly<{
-  children: React.ReactNode;
+  children: ReactNode;
+  modal: ReactNode;
 }>) {
   const { userId } = useUserStore();
   const router = useRouter();
@@ -25,10 +28,11 @@ export default function MainLayout({
       <main className="relative flex flex-auto flex-col items-start">
         <div className="flex min-h-full w-full items-stretch justify-between sm:w-[600px] lg:w-[920px] xl:w-[990px] 2xl:w-[1050px]">
           <div className="relative flex w-full max-w-[600px] grow flex-col items-stretch border-x">
+            {modal}
             {children}
           </div>
           <div className="mr-[10px] hidden w-[290px] flex-col items-stretch pt-3 lg:flex xl:w-[350px] 2xl:mr-[70px]">
-            Who to follow
+            <Suggestion />
           </div>
         </div>
       </main>
