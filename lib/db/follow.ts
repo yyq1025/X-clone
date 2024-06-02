@@ -1,6 +1,6 @@
 "use client";
 
-import { getPagination, PAGE_SIZE } from "@/lib/common/pagination";
+import { getPagination, PAGE_SIZE } from "@/lib/db/pagination";
 import { supabase } from "@/lib/supabaseClient";
 import type { Tables } from "@/lib/types/supabase";
 
@@ -59,44 +59,54 @@ export const getFollowersCountByUserId = async (userId: string) => {
 
 export const getUserFollowingByUserId = async ({
   userId,
-  page,
+  before,
 }: {
   userId: string;
-  page: number;
+  before?: number;
 }) => {
-  const { from, to } = getPagination(page);
-  const { data, error } = await supabase
+  let query = supabase
     .from("follows")
-    .select("users:following_id (*)")
-    .eq("follower_id", userId)
-    .range(from, to)
-    .returns<{ users: Tables<"users"> }[]>();
+    .select("*,users:following_id (*)")
+    .eq("follower_id", userId);
+  if (before) query = query.lt("id", before);
+  const { data, error } = await query
+    .order("id", { ascending: false })
+    .limit(PAGE_SIZE)
+    .returns<(Tables<"follows"> & { users: Tables<"users"> })[]>();
   if (error) throw error;
 
   return {
     following: data,
-    next: data.length === PAGE_SIZE ? page + 1 : null,
+    next:
+      data.length === PAGE_SIZE
+        ? { userId, before: data[PAGE_SIZE - 1].id }
+        : null,
   };
 };
 
 export const getUserFollowersByUserId = async ({
   userId,
-  page,
+  before,
 }: {
   userId: string;
-  page: number;
+  before?: number;
 }) => {
-  const { from, to } = getPagination(page);
-  const { data, error } = await supabase
+  let query = supabase
     .from("follows")
-    .select("users:follower_id (*)")
-    .eq("following_id", userId)
-    .range(from, to)
-    .returns<{ users: Tables<"users"> }[]>();
+    .select("*,users:follower_id (*)")
+    .eq("following_id", userId);
+  if (before) query = query.lt("id", before);
+  const { data, error } = await query
+    .order("id", { ascending: false })
+    .limit(PAGE_SIZE)
+    .returns<(Tables<"follows"> & { users: Tables<"users"> })[]>();
   if (error) throw error;
 
   return {
     followers: data,
-    next: data.length === PAGE_SIZE ? page + 1 : null,
+    next:
+      data.length === PAGE_SIZE
+        ? { userId, before: data[PAGE_SIZE - 1].id }
+        : null,
   };
 };

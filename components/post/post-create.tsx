@@ -1,4 +1,3 @@
-import { after } from "node:test";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useAddPost, usePostById } from "@/lib/hooks/usePost";
@@ -10,7 +9,7 @@ import TextareaAutosize from "react-textarea-autosize";
 
 interface PostCreateProps {
   className?: string;
-  parentId?: string | null;
+  parentId?: number | null;
   minRows?: number;
   maxRows?: number;
   afterSubmit?: () => void;
@@ -37,9 +36,9 @@ const PostCreate: FC<PostCreateProps> = ({
     const mentions = (parent?.mentions || [])
       .filter((mention) => mention !== userId)
       .concat([userId as string]);
-    await addPost.mutateAsync({
+    userId && await addPost.mutateAsync({
       parentId,
-      ownerId: userId as string,
+      ownerId: userId,
       content,
       mentions,
     });

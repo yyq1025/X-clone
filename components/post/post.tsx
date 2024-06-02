@@ -1,38 +1,42 @@
-import Like from "@/components/post/like";
-import ReplyModal from "@/components/post/reply-modal";
+import BookmarkButton from "@/components/post/bookmark-button";
+import LikeButton from "@/components/post/like-button";
+import MoreButton from "@/components/post/more-button";
+import ReplyButton from "@/components/post/reply-button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { usePostById } from "@/lib/hooks/usePost";
 import { useUserById, useUsersByIds } from "@/lib/hooks/useUser";
 import { cn } from "@/lib/utils";
 import dayjs from "dayjs";
-import { Bookmark, Ellipsis, Heart, MessageSquare, Share } from "lucide-react";
+import { Ellipsis, Share } from "lucide-react";
 import Link from "next/link";
 import { FC } from "react";
 
 interface PostProps {
   className?: string;
-  mode?: "reply" | "status" | "home";
-  postId: string;
+  mode?: "withReplyTo" | "status" | "default";
+  postId?: number | null;
 }
 
-const Post: FC<PostProps> = ({ className, mode = "home", postId }) => {
-  const { data: post } = usePostById(postId);
+const Post: FC<PostProps> = ({ className, mode = "default", postId }) => {
+  const { data: post, isLoading } = usePostById(postId);
   const { data: ownerData } = useUserById(post?.owner_id);
   const { data: parent } = usePostById(post?.parent_id);
   const { users: parentMentions } = useUsersByIds(parent?.mentions);
+
+  if (!isLoading && !post) return null;
 
   return (
     <Link
       href={`/${ownerData?.username}/status/${post?.id}`}
       scroll={false}
       className={cn(
-        "flex cursor-pointer flex-col items-stretch px-4 text-sm",
+        "flex flex-col items-stretch px-4 text-sm text-gray-500 transition-colors hover:bg-accent",
         className,
       )}
     >
       <div className="flex">
-        {mode === "status" && post?.parent_id && (
+        {mode === "status" && !!post?.parent_id && (
           <div className="relative mb-1 mr-2 flex basis-10 flex-col">
             <div className="absolute inset-0 mx-auto w-0.5 bg-gray-300" />
           </div>
@@ -54,76 +58,39 @@ const Post: FC<PostProps> = ({ className, mode = "home", postId }) => {
             <div className="mx-auto mt-1 w-0.5 grow bg-gray-300" />
           )}
         </div>
-        <div className="flex flex-1 flex-col justify-center pb-1">
-          <div className="mb-0.5 flex items-start justify-between">
+        <div className="flex flex-1 flex-col justify-center pb-3">
+          <div className="mb-0.5 flex items-center justify-between">
             <div className="flex gap-1">
-              <span className="font-semibold">{ownerData?.name}</span>
-              <span className="text-gray-500">@{ownerData?.username}</span>
-              <span className="text-gray-500">·</span>
-              <span className="text-gray-500">
-                {dayjs(post?.created_at).format("MMM DD")}
+              <span className="font-semibold text-foreground">
+                {ownerData?.name}
               </span>
+              <span>@{ownerData?.username}</span>
+              <span>·</span>
+              <span>{dayjs(post?.created_at).format("MMM DD")}</span>
             </div>
-            <Button size="sm" variant="ghost" className="h-6 px-3">
-              <Ellipsis size={16} />
-            </Button>
+            <MoreButton postId={post?.id} />
           </div>
-          {mode === "reply" && parent && (
-            <p className="mb-0.5 text-sm text-gray-500">
+          {mode === "withReplyTo" && parent && (
+            <p className="mb-0.5">
               Replying to
               <span className="text-blue-500">
                 {parentMentions.map((mention) => ` @${mention?.username}`)}
               </span>
             </p>
           )}
-          <p>{post?.content}</p>
-          <div className="mt-1 flex items-center justify-between gap-1 text-gray-500">
+          <p className="text-foreground">{post?.content}</p>
+          <div className="mt-3 flex items-center justify-between gap-1">
             <div className="flex-start flex flex-1">
-              <ReplyModal
-                postId={post?.id}
-                renderTrigger={({ buttonProps, repliesCount }) => (
-                  <Button
-                    {...buttonProps}
-                    variant="ghost"
-                    size="sm"
-                    className="gap-1"
-                  >
-                    <MessageSquare size={16} />
-                    <span className="text-sm">
-                      {!!repliesCount && repliesCount}
-                    </span>
-                  </Button>
-                )}
-              />
+              <ReplyButton postId={post?.id} size={16} />
             </div>
             <div className="flex-start flex flex-1">
-              <Like
-                postId={post?.id}
-                render={({ buttonProps, liked, likesCount }) => (
-                  <Button
-                    {...buttonProps}
-                    variant="ghost"
-                    size="sm"
-                    className={cn(
-                      "gap-1",
-                      liked && "text-red-500 hover:text-red-500",
-                    )}
-                  >
-                    <Heart size={16} className={cn(liked && "fill-red-500")} />
-                    {!!likesCount && (
-                      <span className="text-sm">{likesCount}</span>
-                    )}
-                  </Button>
-                )}
-              />
+              <LikeButton postId={post?.id} size={16} />
             </div>
             <div className="flex-start flex flex-1">
-              <Button variant="ghost" size="sm">
-                <Bookmark size={16} />
-              </Button>
+              <BookmarkButton postId={post?.id} size={16} />
             </div>
             <div className="flex-start flex">
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="sm" className="-m-2 h-8 p-2">
                 <Share size={16} />
               </Button>
             </div>

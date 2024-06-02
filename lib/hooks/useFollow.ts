@@ -1,6 +1,5 @@
 "use client";
 
-import { optimiticUpdate } from "@/lib/common/optimistic";
 import {
   follow,
   getFollowed,
@@ -10,8 +9,8 @@ import {
   getUserFollowingByUserId,
   unfollow,
 } from "@/lib/db/follow";
+import { optimiticUpdate } from "@/lib/hooks/optimistic";
 import { queryClient } from "@/lib/queryClient";
-import { Tables } from "@/lib/types/supabase";
 import {
   skipToken,
   useInfiniteQuery,
@@ -66,14 +65,8 @@ export const useUserFollowing = (userId?: string) => {
         });
         return users;
       }),
-    initialPageParam: { userId: userId as string, page: 0 },
-    getNextPageParam: (lastPage) =>
-      lastPage.next
-        ? {
-            userId: userId as string,
-            page: lastPage.next,
-          }
-        : null,
+    initialPageParam: { userId: userId as string },
+    getNextPageParam: (lastPage) => lastPage.next,
   });
 };
 
@@ -90,14 +83,8 @@ export const useUserFollowers = (userId?: string) => {
         });
         return users;
       }),
-    initialPageParam: { userId: userId as string, page: 0 },
-    getNextPageParam: (lastPage) =>
-      lastPage.next
-        ? {
-            userId: userId as string,
-            page: lastPage.next,
-          }
-        : null,
+    initialPageParam: { userId: userId as string },
+    getNextPageParam: (lastPage) => lastPage.next,
   });
 };
 

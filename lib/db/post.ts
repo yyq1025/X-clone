@@ -1,83 +1,69 @@
 "use client";
 
-import { getPagination, PAGE_SIZE } from "@/lib/common/pagination";
+import { getPagination, PAGE_SIZE } from "@/lib/db/pagination";
 import { supabase } from "@/lib/supabaseClient";
 import type { Tables } from "@/lib/types/supabase";
+import { isUndefined, omitBy } from "lodash";
+import type { CamelCasedProperties } from "type-fest";
 
-export const createPost = async (
-  post: Pick<
-    Tables<"posts">,
-    "parent_id" | "owner_id" | "content" | "mentions"
-  >,
-) => {
-  const { data, error } = await supabase.from("posts").insert(post).select();
-  if (error) {
-    throw error;
-  }
-  return data[0];
+export const createPost = async ({
+  parentId,
+  ownerId,
+  content,
+  mentions,
+}: CamelCasedProperties<
+  Pick<Tables<"posts">, "parent_id" | "owner_id" | "content" | "mentions">
+>) => {
+  const { error } = await supabase.from("posts").insert({
+    parent_id: parentId,
+    owner_id: ownerId,
+    content,
+    mentions,
+  });
+  if (error) throw error;
 };
 
-export const getPostById = async (postId: string) => {
+export const getPostById = async (postId: number) => {
   const { data, error } = await supabase
-    .from("posts")
+    .from("valid_posts")
     .select()
     .eq("id", postId)
-    .single();
-  if (error) {
-    throw error;
-  }
-  return data;
+    .returns<Tables<"posts">[]>();
+  if (error) throw error;
+  return data.length ? data[0] : null;
 };
 
-export const getPostsByParentId = async ({
+export const getPosts = async ({
   parentId,
-  page,
+  ownerId,
+  before,
 }: {
-  parentId: string | null;
-  page: number;
+  parentId?: number;
+  ownerId?: string;
+  before?: number;
 }) => {
-  const { from, to } = getPagination(page);
-  const query = parentId
-    ? supabase.from("posts").select().eq("parent_id", parentId).range(from, to)
-    : supabase.from("posts").select().is("parent_id", null).range(from, to);
-  const { data, error } = await query;
-  if (error) {
-    throw error;
-  }
+  let query = supabase
+    .from("valid_posts")
+    .select("*")
+    .match(omitBy({ parent_id: parentId, owner_id: ownerId }, isUndefined));
+  if (before) query = query.lt("id", before);
+  const { data, error } = await query
+    .order("id", { ascending: false })
+    .limit(PAGE_SIZE);
+  if (error) throw error;
 
   return {
     posts: data,
-    next: data.length === PAGE_SIZE ? page + 1 : null,
+    next:
+      data.length === PAGE_SIZE
+        ? { parentId, ownerId, before: data[PAGE_SIZE - 1].id ?? undefined }
+        : null,
   };
 };
 
-export const getPostsByUserId = async ({
-  userId,
-  page,
-}: {
-  userId: string;
-  page: number;
-}) => {
-  const { from, to } = getPagination(page);
-  const { data, error } = await supabase
-    .from("posts")
-    .select()
-    .eq("owner_id", userId)
-    .is("parent_id", null)
-    .range(from, to);
-  if (error) {
-    throw error;
-  }
-
-  return {
-    posts: data,
-    next: data.length === PAGE_SIZE ? page + 1 : null,
-  };
-};
-
-export const getRepliesCountByPostId = async (postId: string) => {
+export const getRepliesCountByPostId = async (postId: number) => {
   const { count, error } = await supabase
-    .from("posts")
+    .from("valid_posts")
     .select("*", { count: "exact", head: true })
     .eq("parent_id", postId);
   if (error) throw error;
@@ -86,7 +72,7 @@ export const getRepliesCountByPostId = async (postId: string) => {
 
 export const getPostsCountByUserId = async (userId: string) => {
   const { count, error } = await supabase
-    .from("posts")
+    .from("valid_posts")
     .select("*", { count: "exact", head: true })
     .eq("owner_id", userId);
   if (error) throw error;
@@ -95,22 +81,46 @@ export const getPostsCountByUserId = async (userId: string) => {
 
 export const getRepliesByUserId = async ({
   userId,
-  page,
+  before,
 }: {
   userId: string;
-  page: number;
+  before?: number;
 }) => {
-  const { from, to } = getPagination(page);
-  const { data, error } = await supabase
-    .from("posts")
+  let query = supabase
+    .from("valid_posts")
     .select()
     .eq("owner_id", userId)
-    .not("parent_id", "is", null)
-    .range(from, to);
+    .neq("parent_id", 0);
+  if (before) query = query.lt("id", before);
+  const { data, error } = await query
+    .order("id", { ascending: false })
+    .limit(PAGE_SIZE);
   if (error) throw error;
 
   return {
     posts: data,
-    next: data.length === PAGE_SIZE ? page + 1 : null,
+    next:
+      data.length === PAGE_SIZE
+        ? { userId, before: data[PAGE_SIZE - 1].id ?? undefined }
+        : null,
   };
+};
+
+export const getParentPosts = async (postId: number) => {
+  const { data, error } = await supabase.rpc("get_parent_posts", {
+    parent_id: postId,
+  });
+  if (error) throw error;
+  return data;
+};
+
+export const logicDeletePost = async (postId: number) => {
+  const { data, error } = await supabase
+    .from("posts")
+    .update({ deleted: true })
+    .eq("id", postId)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
 };

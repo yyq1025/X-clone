@@ -8,7 +8,7 @@ const Suggestion: FC = () => {
   return (
     <div className="flex flex-col rounded-xl border">
       <div className="px-4 py-3">
-        <h2 className="text-xl font-extrabold">Who to follow</h2>
+        <h2 className="text-xl font-bold">Who to follow</h2>
       </div>
       {users?.map((user) => (
         <People key={user.id} peopleId={user.id} size="sm" />

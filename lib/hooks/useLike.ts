@@ -1,6 +1,5 @@
 "use client";
 
-import { optimiticUpdate } from "@/lib/common/optimistic";
 import {
   getLiked,
   getLikedPostsByUserId,
@@ -9,8 +8,8 @@ import {
   likePost,
   unlikePost,
 } from "@/lib/db/like";
+import { optimiticUpdate } from "@/lib/hooks/optimistic";
 import { queryClient } from "@/lib/queryClient";
-import { Tables } from "@/lib/types/supabase";
 import {
   skipToken,
   useInfiniteQuery,
@@ -18,7 +17,7 @@ import {
   useQuery,
 } from "@tanstack/react-query";
 
-export const useLikesCountByPostId = (postId?: string) => {
+export const useLikesCountByPostId = (postId?: number) => {
   return useQuery({
     queryKey: ["likesCount", "postId", postId],
     queryFn: postId ? () => getLikesCountByPostId(postId) : skipToken,
@@ -31,7 +30,7 @@ export const useLiked = ({
   postId,
 }: {
   userId?: string;
-  postId?: string;
+  postId?: number;
 }) => {
   return useQuery({
     queryKey: ["liked", userId, postId],
@@ -45,7 +44,7 @@ export const useLiked = ({
 
 export const useLikePost = () => {
   return useMutation({
-    mutationFn: ({ userId, postId }: { userId: string; postId: string }) =>
+    mutationFn: ({ userId, postId }: { userId: string; postId: number }) =>
       likePost({ user_id: userId, post_id: postId }),
     onMutate: async ({ userId, postId }) => {
       const previousLiked = await optimiticUpdate(
@@ -69,8 +68,7 @@ export const useLikePost = () => {
         context.previousLikesCount,
       );
     },
-    onSuccess: (data, { userId, postId }) => {
-      queryClient.setQueryData(["liked", userId, postId], data);
+    onSuccess: (_data, { userId, postId }) => {
       queryClient.invalidateQueries({
         queryKey: ["likedPosts", "userId", userId],
       });
@@ -83,7 +81,7 @@ export const useLikePost = () => {
 
 export const useUnlikePost = () => {
   return useMutation({
-    mutationFn: ({ userId, postId }: { userId: string; postId: string }) =>
+    mutationFn: ({ userId, postId }: { userId: string; postId: number }) =>
       unlikePost({ user_id: userId, post_id: postId }),
     onMutate: async ({ userId, postId }) => {
       const previousLiked = await optimiticUpdate(
@@ -97,18 +95,17 @@ export const useUnlikePost = () => {
 
       return { previousLiked, previousLikesCount };
     },
-    onError: (_err, _variables, context: any) => {
+    onError: (_err, { userId, postId }, context: any) => {
       queryClient.setQueryData(
-        ["liked", context.userId, context.postId],
+        ["liked", userId, postId],
         context.previousLiked,
       );
       queryClient.setQueryData(
-        ["likesCount", "postId", context.postId],
+        ["likesCount", "postId", postId],
         context.previousLikesCount,
       );
     },
-    onSuccess: (data, { userId, postId }) => {
-      queryClient.setQueryData(["liked", userId, postId], data);
+    onSuccess: (_data, { userId, postId }) => {
       queryClient.invalidateQueries({
         queryKey: ["likedPosts", "userId", userId],
       });
@@ -133,14 +130,16 @@ export const useLikedPostsByUserId = (userId?: string) => {
     queryFn: ({ pageParam }) =>
       getLikedPostsByUserId(pageParam).then((data) => {
         data.likedPosts.forEach((like) => {
-          like.posts &&
-            queryClient.setQueryData(["post", like.posts.id], like.posts);
+          like.valid_posts &&
+            queryClient.setQueryData(
+              ["post", like.valid_posts.id],
+              like.valid_posts,
+            );
         });
         return data;
       }),
-    initialPageParam: { userId: userId as string, page: 0 },
-    getNextPageParam: (lastPage) =>
-      lastPage.next ? { userId: userId as string, page: lastPage.next } : null,
+    initialPageParam: { userId: userId as string },
+    getNextPageParam: (lastPage) => lastPage.next,
     enabled: !!userId,
   });
 };

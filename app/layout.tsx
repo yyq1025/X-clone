@@ -1,18 +1,17 @@
 "use client";
 
+import "./globals.css";
+
 import { queryClient } from "@/lib/queryClient";
+import { useUserStore } from "@/lib/stores/user";
 import { supabase } from "@/lib/supabaseClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Inter } from "next/font/google";
-
-import "./globals.css";
-
-import { useUserStore } from "@/lib/stores/user";
 import { ReactNode, useEffect } from "react";
 
 const inter = Inter({ subsets: ["latin"] });
 
-function Layout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: ReactNode;
@@ -29,6 +28,7 @@ function Layout({
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUserId(session?.user.id);
+      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
@@ -37,20 +37,10 @@ function Layout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        {loading ? <div>loading...</div> : children}
+        <QueryClientProvider client={queryClient}>
+          {loading ? <div>loading...</div> : children}
+        </QueryClientProvider>
       </body>
     </html>
-  );
-}
-
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: ReactNode;
-}>) {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <Layout>{children}</Layout>
-    </QueryClientProvider>
   );
 }

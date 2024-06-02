@@ -1,6 +1,6 @@
 "use client";
 
-import { getTopUsers, getUserById, getUserByUsername } from "@/lib/db/user";
+import { getTopUsers, getUserById, getUserByUsername, updateUserById } from "@/lib/db/user";
 import { queryClient } from "@/lib/queryClient";
 import {
   skipToken,
@@ -9,7 +9,7 @@ import {
   useQuery,
 } from "@tanstack/react-query";
 
-export const useUserById = (userId?: string) => {
+export const useUserById = (userId?: string | null) => {
   return useQuery({
     queryKey: ["user", "userId", userId],
     queryFn: userId ? () => getUserById(userId) : skipToken,
@@ -50,3 +50,13 @@ export const useTopUsers = (num: number) => {
       }),
   });
 };
+
+export const useUpdateUserById = () => {
+    return useMutation({
+      mutationFn: updateUserById,
+      onSuccess: (data) => {
+        queryClient.invalidateQueries({queryKey: ["user", "userId", data.id]});
+        queryClient.invalidateQueries({queryKey: ["user", "username", data.username]});
+      },
+    })
+  }

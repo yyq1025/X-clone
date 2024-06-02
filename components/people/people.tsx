@@ -49,7 +49,7 @@ const People: FC<PeopleProps> = ({ peopleId, size = "default" }) => {
         <div className="flex items-center justify-between">
           <div className="flex shrink flex-col">
             <p className="text-sm font-semibold">{people?.name}</p>
-            <p className="text-xs text-gray-500">@{people?.username}</p>
+            <p className="text-sm text-gray-500">@{people?.username}</p>
           </div>
           {userId !== people?.id &&
             (followed ? (

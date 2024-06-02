@@ -2,15 +2,15 @@
 
 import {
   createPost,
+  getParentPosts,
   getPostById,
-  getPostsByParentId,
-  getPostsByUserId,
+  getPosts,
   getPostsCountByUserId,
   getRepliesByUserId,
   getRepliesCountByPostId,
+  logicDeletePost,
 } from "@/lib/db/post";
 import { queryClient } from "@/lib/queryClient";
-import type { Tables } from "@/lib/types/supabase";
 import {
   skipToken,
   useInfiniteQuery,
@@ -20,31 +20,15 @@ import {
 
 export const useAddPost = () => {
   return useMutation({
-    mutationFn: ({
-      parentId,
-      ownerId,
-      content,
-      mentions,
-    }: {
-      parentId: string | null;
-      ownerId: string;
-      content: string;
-      mentions: string[];
-    }) =>
-      createPost({
-        parent_id: parentId,
-        owner_id: ownerId,
-        content,
-        mentions,
-      }),
-    onSuccess: (data, { parentId, ownerId }) => {
+    mutationFn: createPost,
+    onSuccess: (_data, { parentId, ownerId }) => {
       queryClient.invalidateQueries({
         queryKey: ["posts", "parentId", parentId],
       });
       queryClient.invalidateQueries({
         queryKey: ["postsCount", ownerId],
       });
-      if (data.parent_id) {
+      if (parentId) {
         queryClient.invalidateQueries({
           queryKey: ["repliesCount", parentId],
         });
@@ -60,7 +44,33 @@ export const useAddPost = () => {
   });
 };
 
-export const usePostById = (postId?: string | null) => {
+export const useDeletePost = () => {
+  return useMutation({
+    mutationFn: logicDeletePost,
+    onSuccess: ({parent_id, owner_id}) => {
+      queryClient.invalidateQueries({
+        queryKey: ["posts", "parentId", parent_id],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["postsCount", owner_id],
+      });
+      if (parent_id) {
+        queryClient.invalidateQueries({
+          queryKey: ["repliesCount", parent_id],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["replies", "userId", owner_id],
+        });
+      } else {
+        queryClient.invalidateQueries({
+          queryKey: ["posts", "userId", owner_id],
+        });
+      }
+    },
+  });
+};
+
+export const usePostById = (postId?: number | null) => {
   return useQuery({
     queryKey: ["post", postId],
     queryFn: postId ? () => getPostById(postId) : skipToken,
@@ -68,21 +78,22 @@ export const usePostById = (postId?: string | null) => {
   });
 };
 
-export const usePostsByParentId = (parentId?: string | null) => {
+export const usePosts = () => {
+  return useRepliesByParentId(0);
+};
+
+export const useRepliesByParentId = (parentId?: number) => {
   return useInfiniteQuery({
     queryKey: ["posts", "parentId", parentId],
     queryFn: ({ pageParam }) =>
-      getPostsByParentId(pageParam).then((data) => {
+      getPosts(pageParam).then((data) => {
         data.posts.forEach((post) => {
           queryClient.setQueryData(["post", post.id], post);
         });
         return data;
       }),
-    initialPageParam: { parentId: parentId as string | null, page: 0 },
-    getNextPageParam: (lastPage) =>
-      lastPage.next
-        ? { parentId: parentId as string | null, page: lastPage.next }
-        : null,
+    initialPageParam: { parentId },
+    getNextPageParam: (lastPage) => lastPage.next,
     enabled: parentId !== undefined,
   });
 };
@@ -91,20 +102,19 @@ export const usePostsByUserId = (userId?: string) => {
   return useInfiniteQuery({
     queryKey: ["posts", "userId", userId],
     queryFn: ({ pageParam }) =>
-      getPostsByUserId(pageParam).then((data) => {
+      getPosts(pageParam).then((data) => {
         data.posts.forEach((post) => {
           queryClient.setQueryData(["post", post.id], post);
         });
         return data;
       }),
-    initialPageParam: { userId: userId as string, page: 0 },
-    getNextPageParam: (lastPage) =>
-      lastPage.next ? { userId: userId as string, page: lastPage.next } : null,
+    initialPageParam: { parentId: 0 as number | undefined, ownerId: userId },
+    getNextPageParam: (lastPage) => lastPage.next,
     enabled: !!userId,
   });
 };
 
-export const useRepliesCount = (postId?: string) => {
+export const useRepliesCount = (postId?: number) => {
   return useQuery({
     queryKey: ["repliesCount", postId],
     queryFn: postId ? () => getRepliesCountByPostId(postId) : skipToken,
@@ -120,25 +130,19 @@ export const usePostsCountByUserId = (userId?: string) => {
   });
 };
 
-const getParentPosts = async (postId: string | null) => {
-  const posts: Tables<"posts">[] = [];
-  while (postId) {
-    const post = await queryClient.fetchQuery({
-      queryKey: ["post", postId],
-      queryFn: ({ queryKey: [_, postId] }) => getPostById(postId),
-    });
-    if (!post) break;
-    posts.push(post);
-    postId = post.parent_id;
-  }
-  return posts;
-};
-
-export const useParentPosts = (postId?: string | null) => {
+export const useParentPosts = (postId?: number | null) => {
   return useQuery({
     queryKey: ["parentPosts", postId],
-    queryFn: postId ? () => getParentPosts(postId) : skipToken,
-    enabled: postId != undefined,
+    queryFn: postId
+      ? () =>
+          getParentPosts(postId).then((posts) => {
+            posts.forEach((post) => {
+              queryClient.setQueryData(["post", post.id], post);
+            });
+            return posts;
+          })
+      : skipToken,
+    enabled: !!postId,
   });
 };
 
@@ -148,13 +152,12 @@ export const useRepliesByUserId = (userId?: string) => {
     queryFn: ({ pageParam }) =>
       getRepliesByUserId(pageParam).then((data) => {
         data.posts.forEach((post) => {
-          queryClient.setQueryData(["post", post.id], post);
+          !post.deleted && queryClient.setQueryData(["post", post.id], post);
         });
         return data;
       }),
-    initialPageParam: { userId: userId as string, page: 0 },
-    getNextPageParam: (lastPage) =>
-      lastPage.next ? { userId: userId as string, page: lastPage.next } : null,
+    initialPageParam: { userId: userId as string },
+    getNextPageParam: (lastPage) => lastPage.next,
     enabled: !!userId,
   });
 };
