@@ -1,0 +1,1 @@
+export const siteKey = process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY!;
