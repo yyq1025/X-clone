@@ -21,4 +21,6 @@ Twitter clone web application based on Next.js and Supabase.
 
 ### Polling-based Notifications
 
+### Logic Delete
+
 ## Todo
