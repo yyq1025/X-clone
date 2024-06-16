@@ -1,36 +1,24 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# X-clone by Richard Yang
 
-## Getting Started
+Twitter clone web application based on Next.js and Supabase.
 
-First, run the development server:
+[![TypeScript](https://img.shields.io/github/package-json/dependency-version/yyq1025/X-clone/dev/typescript?logo=typescript&logoColor=white&label=TypeScript&color=3178c6)](https://www.typescriptlang.org/)
+[![Next.js](https://img.shields.io/github/package-json/dependency-version/yyq1025/X-clone/next?style=flat&logo=nextdotjs&logoColor=white&label=Next.js&color=black)](https://nextjs.org/)
+[![Supabase](https://img.shields.io/github/package-json/dependency-version/yyq1025/X-clone/%40supabase%2Fsupabase-js?logo=supabase&logoColor=white&label=Supabase&color=3fcf8e)](https://supabase.com/)
+[![TanStack Query](https://img.shields.io/github/package-json/dependency-version/yyq1025/X-clone/%40tanstack%2Freact-query?logo=reactquery&logoColor=white&label=TanStack%20Query&color=ff4154)](https://tanstack.com/query/latest)
+[![shadcn/ui](https://img.shields.io/badge/shadcn%2Fui-black?logo=shadcnui)](https://ui.shadcn.com/)
+[![Tailwind CSS](https://img.shields.io/github/package-json/dependency-version/yyq1025/X-clone/dev/tailwindcss?logo=tailwindcss&logoColor=white&label=Tailwind%20CSS&color=06b6d4)](https://tailwindcss.com/)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Features
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Infinite Scroll Everywhere
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Optimistic Updates
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+### Route-based Modals
 
-## Learn More
+### Crop Images Before Upload
 
-To learn more about Next.js, take a look at the following resources:
+### Polling-based Notifications
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+## Todo
