@@ -1,6 +1,11 @@
 "use client";
 
-import { getTopUsers, getUserById, getUserByUsername, updateUserById } from "@/lib/db/user";
+import {
+  getTopUsers,
+  getUserById,
+  getUserByUsername,
+  updateUserById,
+} from "@/lib/db/user";
 import { queryClient } from "@/lib/queryClient";
 import {
   skipToken,
@@ -52,11 +57,11 @@ export const useTopUsers = (num: number) => {
 };
 
 export const useUpdateUserById = () => {
-    return useMutation({
-      mutationFn: updateUserById,
-      onSuccess: (data) => {
-        queryClient.invalidateQueries({queryKey: ["user", "userId", data.id]});
-        queryClient.invalidateQueries({queryKey: ["user", "username", data.username]});
-      },
-    })
-  }
+  return useMutation({
+    mutationFn: updateUserById,
+    onSuccess: (data) => {
+      queryClient.setQueryData(["user", "userId", data.id], data);
+      queryClient.setQueryData(["user", "username", data.username], data);
+    },
+  });
+};

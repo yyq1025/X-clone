@@ -11,6 +11,7 @@ import { useUserByUsername } from "@/lib/hooks/useUser";
 import { useUserStore } from "@/lib/stores/user";
 import { CalendarDaysIcon, MapPinIcon } from "@heroicons/react/24/outline";
 import dayjs from "dayjs";
+import Image from "next/image";
 import { useRouter, useSelectedLayoutSegment } from "next/navigation";
 
 export default function ProfileLayout({
@@ -45,9 +46,15 @@ export default function ProfileLayout({
         <div className="relative w-full bg-gray-300">
           <div className="pb-[33.3%]" />
           {user?.banner && (
-            <img
+            // <img
+            //   src={user.banner}
+            //   className="absolute inset-0 h-full w-full object-cover"
+            // />
+            <Image
               src={user.banner}
               className="absolute inset-0 h-full w-full object-cover"
+              fill
+              alt="banner"
             />
           )}
         </div>
@@ -79,7 +86,9 @@ export default function ProfileLayout({
             </div>
           </div>
           <div className="mb-3 mt-1 flex flex-col">
-            <h2 className="text-xl font-semibold text-foreground">{user?.name}</h2>
+            <h2 className="text-xl font-semibold text-foreground">
+              {user?.name}
+            </h2>
             <span>@{user?.username}</span>
           </div>
           {user?.bio && <p className="mb-3 text-foreground">{user?.bio}</p>}
@@ -96,7 +105,7 @@ export default function ProfileLayout({
             </span>
           </div>
           <div className="flex flex-1 flex-wrap">
-            <FollowingCount uid={user?.id} className="mr-5"/>
+            <FollowingCount uid={user?.id} className="mr-5" />
             <FollowerCount uid={user?.id} />
           </div>
         </div>

@@ -3,6 +3,7 @@
 import { supabase } from "@/lib/supabaseClient";
 import type { Tables } from "@/lib/types/supabase";
 import { omit } from "lodash";
+import { nanoid } from "nanoid";
 
 export const getUserById = async (userId: string) => {
   const { data, error } = await supabase
@@ -35,32 +36,35 @@ export const updateUserById = async ({
   updates,
 }: {
   userId: string;
-  updates: Partial<Tables<"users">> & { avatarFile?: Blob, bannerFile?: Blob | null };
+  updates: Partial<Tables<"users">> & {
+    avatarFile?: Blob;
+    bannerFile?: Blob | null;
+  };
 }) => {
   if (updates.avatarFile) {
+    const avatarId = nanoid();
     const { error } = await supabase.storage
       .from("profile_images")
-      .upload(`${userId}/avatar.jpg`, updates.avatarFile, {
+      .upload(`${userId}/${avatarId}.jpg`, updates.avatarFile, {
         cacheControl: "3600",
-        upsert: true,
       });
     if (error) throw error;
     const { data: url } = supabase.storage
       .from("profile_images")
-      .getPublicUrl(`/${userId}/avatar.jpg`);
+      .getPublicUrl(`/${userId}/${avatarId}.jpg`);
     updates = { ...updates, avatar: url.publicUrl };
   }
   if (updates.bannerFile) {
+    const bannerId = nanoid();
     const { error } = await supabase.storage
-      .from("profile_images")
-      .upload(`${userId}/banner.jpg`, updates.bannerFile, {
+      .from("profile_banners")
+      .upload(`${userId}/${bannerId}.jpg`, updates.bannerFile, {
         cacheControl: "3600",
-        upsert: true,
       });
     if (error) throw error;
     const { data: url } = supabase.storage
-      .from("profile_images")
-      .getPublicUrl(`/${userId}/banner.jpg`);
+      .from("profile_banners")
+      .getPublicUrl(`/${userId}/${bannerId}.jpg`);
     updates = { ...updates, banner: url.publicUrl };
   } else if (updates.bannerFile === null) {
     updates = { ...updates, banner: "" };
