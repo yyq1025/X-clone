@@ -244,7 +244,7 @@ export type Database = {
       }
       users: {
         Row: {
-          avatar: string | null
+          avatar: string
           banner: string | null
           bio: string
           created_at: string
@@ -256,7 +256,7 @@ export type Database = {
           website: string
         }
         Insert: {
-          avatar?: string | null
+          avatar?: string
           banner?: string | null
           bio?: string
           created_at?: string
@@ -268,7 +268,7 @@ export type Database = {
           website?: string
         }
         Update: {
-          avatar?: string | null
+          avatar?: string
           banner?: string | null
           bio?: string
           created_at?: string
@@ -364,7 +364,7 @@ export type Database = {
           num: number
         }
         Returns: {
-          avatar: string | null
+          avatar: string
           banner: string | null
           bio: string
           created_at: string

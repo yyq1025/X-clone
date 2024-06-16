@@ -51,7 +51,7 @@ export const updateUserById = async ({
     if (error) throw error;
     const { data: url } = supabase.storage
       .from("profile_images")
-      .getPublicUrl(`/${userId}/${avatarId}.jpg`);
+      .getPublicUrl(`${userId}/${avatarId}.jpg`);
     updates = { ...updates, avatar: url.publicUrl };
   }
   if (updates.bannerFile) {
@@ -64,7 +64,7 @@ export const updateUserById = async ({
     if (error) throw error;
     const { data: url } = supabase.storage
       .from("profile_banners")
-      .getPublicUrl(`/${userId}/${bannerId}.jpg`);
+      .getPublicUrl(`${userId}/${bannerId}.jpg`);
     updates = { ...updates, banner: url.publicUrl };
   } else if (updates.bannerFile === null) {
     updates = { ...updates, banner: "" };

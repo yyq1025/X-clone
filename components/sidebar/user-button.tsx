@@ -28,7 +28,7 @@ const UserButton: React.FC = () => {
           className="my-3 flex h-auto justify-start p-3"
         >
           <Avatar className="size-10">
-            <AvatarImage src={user?.avatar || ""} alt={user?.name || ""} />
+            <AvatarImage src={user?.avatar} />
             <AvatarFallback>
               {user?.name?.charAt(0).toUpperCase()}
             </AvatarFallback>

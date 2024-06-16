@@ -15,6 +15,7 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { Content } from "@radix-ui/react-dialog";
+import Image from "next/image";
 import { FC, useRef, useState } from "react";
 import Cropper, { Area, Point } from "react-easy-crop";
 
@@ -52,9 +53,10 @@ const BannerInput: FC<BannerInputProps> = ({ initialImg, onChange }) => {
   return (
     <>
       {!!imgSrc && (
-        <img
-          className="absolute inset-0 h-full w-full object-cover"
+        <Image
           src={imgSrc}
+          alt="banner"
+          fill
           onLoad={() => URL.revokeObjectURL(imgSrc)}
         />
       )}
@@ -131,6 +133,13 @@ const BannerInput: FC<BannerInputProps> = ({ initialImg, onChange }) => {
                     setCroppedAreaPixels(croppedPixels)
                   }
                   showGrid={false}
+                  style={{
+                    cropAreaStyle: {
+                      borderWidth: 4,
+                      borderColor: "hsl(var(--primary))",
+                      color: "rgba(230, 236, 240, 0.7)",
+                    },
+                  }}
                 />
               </div>
               <div className="flex items-center justify-center p-1">

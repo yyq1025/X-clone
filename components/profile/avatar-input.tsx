@@ -1,4 +1,5 @@
 import getCroppedImg from "@/components/profile/cropImage";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -50,11 +51,15 @@ const AvatarInput: FC<AvatarInputProps> = ({ initialImg, onChange }) => {
 
   return (
     <>
-      <img
-        className="absolute inset-0 h-full w-full rounded-full"
-        src={imgSrc}
-        onLoad={() => URL.revokeObjectURL(imgSrc)}
-      />
+      <Avatar className="absolute inset-0 h-full w-full">
+        <AvatarImage
+          src={imgSrc}
+          onLoadingStatusChange={(status) =>
+            status === "loaded" && URL.revokeObjectURL(imgSrc)
+          }
+        />
+        <AvatarFallback>Avatar</AvatarFallback>
+      </Avatar>
       <div className="absolute inset-0 flex h-full w-full items-center justify-center rounded-full bg-black/30">
         <Button
           variant="ghost"

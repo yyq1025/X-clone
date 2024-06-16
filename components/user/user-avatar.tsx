@@ -19,7 +19,7 @@ const UserAvatar = forwardRef<
       {...props}
     >
       <Avatar className={cn(className)}>
-        <AvatarImage src={user?.avatar || ""} />
+        <AvatarImage src={user?.avatar} />
         <AvatarFallback>{user?.name.charAt(0).toUpperCase()}</AvatarFallback>
         <div className="absolute inset-0 h-full w-full hover:bg-gray-900/15" />
       </Avatar>

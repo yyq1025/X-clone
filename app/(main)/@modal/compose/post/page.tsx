@@ -51,8 +51,7 @@ export default function PostModal() {
                   <div className="mr-2 flex basis-10 flex-col items-center">
                     <Avatar>
                       <AvatarImage
-                        src={parentOwner?.avatar || ""}
-                        alt={parentOwner?.name || ""}
+                        src={parentOwner?.avatar}
                       />
                       <AvatarFallback>
                         {parentOwner?.name.charAt(0).toUpperCase()}

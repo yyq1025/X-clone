@@ -2,6 +2,7 @@
 
 import BackButton from "@/components/nav/back-button";
 import Tab from "@/components/profile/tab";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import FollowButton from "@/components/user/follow-button";
 import FollowerCount from "@/components/user/follower-count";
@@ -45,28 +46,18 @@ export default function ProfileLayout({
       <div className="flex flex-col text-sm">
         <div className="relative w-full bg-gray-300">
           <div className="pb-[33.3%]" />
-          {user?.banner && (
-            // <img
-            //   src={user.banner}
-            //   className="absolute inset-0 h-full w-full object-cover"
-            // />
-            <Image
-              src={user.banner}
-              className="absolute inset-0 h-full w-full object-cover"
-              fill
-              alt="banner"
-            />
-          )}
+          {user?.banner && <Image src={user.banner} fill alt="banner" />}
         </div>
         <div className="mb-4 flex flex-col px-4 pt-3 text-gray-500">
           <div className="flex flex-wrap items-start justify-between">
             <div className="relative mb-3 mt-[-15%] w-[25%] min-w-12 rounded-full  border-4 border-white">
               <div className="pb-[100%]" />
-              <img
-                className="absolute inset-0 h-full w-full rounded-full"
-                src={user?.avatar || ""}
-                alt={user?.name}
-              />
+              <Avatar className="absolute inset-0 h-full w-full">
+                <AvatarImage src={user?.avatar} />
+                <AvatarFallback>
+                  {user?.name.charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
             </div>
             <div className="flex flex-wrap items-end justify-start text-foreground">
               {userId === user?.id ? (

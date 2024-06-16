@@ -53,7 +53,7 @@ const PostCreate: FC<PostCreateProps> = ({
       <div className="flex">
         <div className="mr-2 basis-10 pt-3">
           <Avatar>
-            <AvatarImage src={user?.avatar || ""} alt={user?.name || ""} />
+            <AvatarImage src={user?.avatar} />
             <AvatarFallback>
               {user?.name?.charAt(0).toUpperCase()}
             </AvatarFallback>
