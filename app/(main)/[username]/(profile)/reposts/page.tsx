@@ -2,18 +2,18 @@
 
 import Post from "@/components/post/post";
 import { useInfiniteScroll } from "@/lib/hooks/useInfiniteScroll";
-import { useLikedPostsByUserId } from "@/lib/hooks/useLike";
+import { useRepostedPostsByUserId } from "@/lib/hooks/useRepost";
 import { useUserByUsername } from "@/lib/hooks/useUser";
 
-export default function Replies({ params }: { params: { username: string } }) {
+export default function Reposts({ params }: { params: { username: string } }) {
   const { username } = params;
   const { data: user } = useUserByUsername(username);
   const {
-    data: likedPosts,
+    data: repostedPosts,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useLikedPostsByUserId(user?.id);
+  } = useRepostedPostsByUserId(user?.id);
 
   useInfiniteScroll({
     fetchMore: fetchNextPage,
@@ -23,14 +23,14 @@ export default function Replies({ params }: { params: { username: string } }) {
 
   return (
     <>
-      {likedPosts?.pages.map((page) =>
-        page.likedPosts.map(
+      {repostedPosts?.pages.map((page) =>
+        page.repostedPosts.map(
           (post) =>
             post.valid_posts && (
               <Post
                 key={post.valid_posts.id}
                 postId={post.valid_posts.id}
-                mode="withReplyTo"
+                reposterId={user?.id}
                 className="border-b"
               />
             ),

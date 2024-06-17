@@ -28,7 +28,6 @@ export default function Replies({ params }: { params: { username: string } }) {
           <Post
             key={post.id}
             postId={post.id}
-            mode="withReplyTo"
             className="border-b"
           />
         )),

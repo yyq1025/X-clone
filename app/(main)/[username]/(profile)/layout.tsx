@@ -104,14 +104,14 @@ export default function ProfileLayout({
       <nav className="flex border-b text-gray-500">
         <Tab href={`/${username}`} label="Posts" active={segment === null} />
         <Tab
-          href={`/${username}/with_replies`}
+          href={`/${username}/replies`}
           label="Replies"
-          active={segment === "with_replies"}
+          active={segment === "replies"}
         />
         <Tab
-          href={`/${username}/likes`}
-          label="Likes"
-          active={segment === "likes"}
+          href={`/${username}/reposts`}
+          label="Reposts"
+          active={segment === "reposts"}
         />
       </nav>
       {children}

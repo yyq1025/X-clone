@@ -242,6 +242,49 @@ export type Database = {
           },
         ]
       }
+      repost: {
+        Row: {
+          created_at: string
+          id: number
+          post_id: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          post_id: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          post_id?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "repost_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "repost_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "valid_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "repost_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           avatar: string
@@ -291,6 +334,21 @@ export type Database = {
       }
     }
     Views: {
+      user_valid_posts: {
+        Row: {
+          action_created_at: string | null
+          content: string | null
+          created_at: string | null
+          deleted: boolean | null
+          id: number | null
+          mentions: string[] | null
+          owner_id: string | null
+          parent_id: number | null
+          type: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
       valid_posts: {
         Row: {
           content: string | null
@@ -378,7 +436,7 @@ export type Database = {
       }
     }
     Enums: {
-      notification_type: "reply" | "like" | "follow"
+      notification_type: "reply" | "like" | "follow" | "repost"
     }
     CompositeTypes: {
       [_ in never]: never

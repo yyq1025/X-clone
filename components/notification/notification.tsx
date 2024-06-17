@@ -1,5 +1,4 @@
 import Post from "@/components/post/post";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Name from "@/components/user/name";
 import UserAvatar from "@/components/user/user-avatar";
 import UserCard from "@/components/user/user-card";
@@ -7,8 +6,8 @@ import { useNotificationById } from "@/lib/hooks/useNotification";
 import { usePostById } from "@/lib/hooks/usePost";
 import { useUserById } from "@/lib/hooks/useUser";
 import { cn } from "@/lib/utils";
+import { ArrowPathRoundedSquareIcon } from "@heroicons/react/24/outline";
 import { HeartIcon, UserIcon } from "@heroicons/react/24/solid";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FC } from "react";
 
@@ -23,18 +22,16 @@ const Notification: FC<NotificationProps> = ({ notificationId }) => {
   const { data: recipient } = useUserById(notification?.recipient_id);
   const { data: post, isLoading } = usePostById(notification?.post_id);
 
-  if (!isLoading && !post) return null;
+  if (!isLoading && !post?.deleted) return null;
 
   return (
     <>
-      {notification?.type === "reply" && (
+      {notification?.type === "reply" ? (
         <Post
           postId={notification?.post_id}
-          mode="withReplyTo"
           className={cn("border-b", !notification?.read && "bg-primary/10")}
         />
-      )}
-      {notification?.type === "like" && (
+      ) : notification?.type != "follow" ? (
         <div
           onClick={() =>
             router.push(`/${recipient?.username}/status/${post?.id}`, {
@@ -47,7 +44,12 @@ const Notification: FC<NotificationProps> = ({ notificationId }) => {
           )}
         >
           <div className="mr-2 flex basis-10 flex-col items-end">
-            <HeartIcon className="size-8 text-red-500" />
+            {notification?.type === "like" && (
+              <HeartIcon className="size-8 text-red-500" />
+            )}
+            {notification?.type === "repost" && (
+              <ArrowPathRoundedSquareIcon className="size-8 stroke-2 text-green-500" />
+            )}
           </div>
           <div className="flex grow flex-col">
             <div className="mb-3 flex">
@@ -59,13 +61,14 @@ const Notification: FC<NotificationProps> = ({ notificationId }) => {
               <UserCard uid={sender?.id}>
                 <Name uid={sender?.id} />
               </UserCard>{" "}
-              liked your {post?.parent_id ? "reply" : "post"}
+              {notification?.type === "like" && "liked"}
+              {notification?.type === "repost" && "reposted"} your{" "}
+              {post?.parent_id ? "reply" : "post"}
             </div>
             <p className="mt-3 text-gray-500">{post?.content}</p>
           </div>
         </div>
-      )}
-      {notification?.type === "follow" && (
+      ) : (
         <div
           onClick={() => router.push(`/${sender?.username}`, { scroll: false })}
           className={cn(

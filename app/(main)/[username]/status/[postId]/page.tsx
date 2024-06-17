@@ -7,6 +7,7 @@ import MoreButton from "@/components/post/more-button";
 import Post from "@/components/post/post";
 import PostCreate from "@/components/post/post-create";
 import ReplyButton from "@/components/post/reply-button";
+import RepostButton from "@/components/post/repost-button";
 import { Button } from "@/components/ui/button";
 import Name from "@/components/user/name";
 import UserAvatar from "@/components/user/user-avatar";
@@ -30,7 +31,7 @@ export default function Status({
 }) {
   const { postId } = params;
 
-  const { data: post } = usePostById(+postId);
+  const { data: post, isLoading } = usePostById(+postId);
   const { data: parent } = useParentPosts(post?.parent_id);
   const { data: owner } = useUserById(post?.owner_id);
   const { users: mentions } = useUsersByIds(post?.mentions);
@@ -51,7 +52,7 @@ export default function Status({
     ref.current?.scrollIntoView();
   }, [parent]);
 
-  if (post?.deleted) return null;
+  if (!isLoading && post?.deleted) return null;
 
   return (
     <>
@@ -65,7 +66,7 @@ export default function Status({
       </div>
       {parent
         ?.toReversed()
-        .map((post) => <Post key={post.id} postId={post.id} mode="status" />)}
+        .map((post) => <Post key={post.id} postId={post.id} mode="parent" />)}
       <div className="min-h-[calc(100dvh-53px)]">
         <div className="flex flex-col px-4" ref={ref}>
           <div className="flex">
@@ -86,7 +87,7 @@ export default function Status({
                   <Name uid={owner?.id} />
                 </UserCard>
                 <UserCard uid={owner?.id}>
-                <Username uid={owner?.id} className="text-gray-500" />
+                  <Username uid={owner?.id} className="text-gray-500" />
                 </UserCard>
               </div>
               <MoreButton postId={post?.id} />
@@ -100,6 +101,9 @@ export default function Status({
             <div className="flex h-12 justify-between gap-x-1 border-y px-1 text-gray-600">
               <div className="flex flex-1 items-center justify-start">
                 <ReplyButton postId={post?.id} className="size-6" />
+              </div>
+              <div className="flex flex-1 items-center justify-start">
+                <RepostButton postId={post?.id} className="size-6" />
               </div>
               <div className="flex flex-1 items-center justify-start">
                 <LikeButton postId={post?.id} className="size-6" />

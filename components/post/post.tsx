@@ -2,6 +2,7 @@ import BookmarkButton from "@/components/post/bookmark-button";
 import LikeButton from "@/components/post/like-button";
 import MoreButton from "@/components/post/more-button";
 import ReplyButton from "@/components/post/reply-button";
+import RepostButton from "@/components/post/repost-button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import Name from "@/components/user/name";
@@ -10,25 +11,40 @@ import UserCard from "@/components/user/user-card";
 import Username from "@/components/user/username";
 import { usePostById } from "@/lib/hooks/usePost";
 import { useUserById } from "@/lib/hooks/useUser";
+import { useUserStore } from "@/lib/stores/user";
 import { cn } from "@/lib/utils";
-import { ArrowUpTrayIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowPathRoundedSquareIcon,
+  ArrowUpTrayIcon,
+} from "@heroicons/react/24/outline";
 import dayjs from "dayjs";
-import { useRouter } from "next/navigation";
-import { FC } from "react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { FC, Fragment } from "react";
 
 interface PostProps {
   className?: string;
-  mode?: "withReplyTo" | "status" | "default";
+  mode?: "parent" | "default";
   postId?: number | null;
+  reposterId?: string;
 }
 
-const Post: FC<PostProps> = ({ className, mode = "default", postId }) => {
+const Post: FC<PostProps> = ({
+  className,
+  mode = "default",
+  postId,
+  reposterId,
+}) => {
+  const { userId } = useUserStore();
   const { data: post } = usePostById(postId);
   const { data: owner } = useUserById(post?.owner_id);
   const { data: parent } = usePostById(post?.parent_id);
+  const { data: reposter } = useUserById(reposterId);
   const router = useRouter();
+  const pathname = usePathname();
+  const isStatusPage = pathname.split("/").includes("status");
 
-  if (mode != "status" && post?.deleted) return null;
+  if (mode != "parent" && post?.deleted) return null;
 
   return (
     <div
@@ -45,12 +61,32 @@ const Post: FC<PostProps> = ({ className, mode = "default", postId }) => {
       )}
     >
       <div className="flex">
-        {mode === "status" && !!post?.parent_id && (
+        {mode === "parent" && !!post?.parent_id && (
           <div className="relative mb-1 mr-2 flex basis-10 flex-col">
             <div className="absolute inset-0 mx-auto w-0.5 bg-gray-300" />
           </div>
         )}
-        <div className="grow pt-3" />
+        <div className="grow pt-3 text-gray-600">
+          {reposterId && (
+            <div className="-mt-1 mb-1 flex">
+              <div className="mr-2 flex basis-10 justify-end">
+                <ArrowPathRoundedSquareIcon className="size-4 stroke-2" />
+              </div>
+              <div className="flex flex-1">
+                <UserCard uid={reposterId}>
+                  <Link
+                    href={`/${reposter?.username}`}
+                    scroll={false}
+                    onClick={(e) => e.stopPropagation()}
+                    className="text-xs font-semibold hover:underline"
+                  >
+                    {reposterId === userId ? "You" : reposter?.name} reposted
+                  </Link>
+                </UserCard>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
       {post?.deleted ? (
         <Alert className="mb-3 bg-secondary text-gray-600">
@@ -64,7 +100,7 @@ const Post: FC<PostProps> = ({ className, mode = "default", postId }) => {
             <UserCard uid={owner?.id}>
               <UserAvatar uid={owner?.id} className="size-10" />
             </UserCard>
-            {mode === "status" && (
+            {mode === "parent" && (
               <div className="mx-auto mt-1 w-0.5 grow bg-gray-300" />
             )}
           </div>
@@ -82,18 +118,18 @@ const Post: FC<PostProps> = ({ className, mode = "default", postId }) => {
               </div>
               <MoreButton postId={post?.id} />
             </div>
-            {mode === "withReplyTo" && !!post?.parent_id && (
+            {!isStatusPage && !!post?.parent_id && (
               <p className="mb-0.5">
                 Replying to{" "}
                 {parent?.mentions.map((uid) => (
-                  <>
+                  <Fragment key={uid}>
                     <UserCard uid={uid}>
                       <Username
                         uid={uid}
                         className="text-primary hover:underline"
                       />
                     </UserCard>{" "}
-                  </>
+                  </Fragment>
                 ))}
               </p>
             )}
@@ -101,6 +137,9 @@ const Post: FC<PostProps> = ({ className, mode = "default", postId }) => {
             <div className="mt-3 flex items-center justify-between gap-1 text-gray-600">
               <div className="flex-start flex flex-1">
                 <ReplyButton postId={post?.id} className="size-5" />
+              </div>
+              <div className="flex-start flex flex-1">
+                <RepostButton postId={post?.id} className="size-5" />
               </div>
               <div className="flex-start flex flex-1">
                 <LikeButton postId={post?.id} className="size-5" />

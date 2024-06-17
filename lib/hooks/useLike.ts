@@ -2,9 +2,7 @@
 
 import {
   getLiked,
-  getLikedPostsByUserId,
   getLikesCountByPostId,
-  getLikesCountByUserId,
   likePost,
   unlikePost,
 } from "@/lib/db/like";
@@ -12,7 +10,6 @@ import { optimiticUpdate } from "@/lib/hooks/optimistic";
 import { queryClient } from "@/lib/queryClient";
 import {
   skipToken,
-  useInfiniteQuery,
   useMutation,
   useQuery,
 } from "@tanstack/react-query";
@@ -113,33 +110,5 @@ export const useUnlikePost = () => {
         queryKey: ["likesCount", "postId", postId],
       });
     },
-  });
-};
-
-export const useLikesCountByUserId = (userId?: string) => {
-  return useQuery({
-    queryKey: ["likesCount", "userId", userId],
-    queryFn: userId ? () => getLikesCountByUserId(userId) : skipToken,
-    enabled: !!userId,
-  });
-};
-
-export const useLikedPostsByUserId = (userId?: string) => {
-  return useInfiniteQuery({
-    queryKey: ["likedPosts", "userId", userId],
-    queryFn: ({ pageParam }) =>
-      getLikedPostsByUserId(pageParam).then((data) => {
-        data.likedPosts.forEach((like) => {
-          like.valid_posts &&
-            queryClient.setQueryData(
-              ["post", like.valid_posts.id],
-              like.valid_posts,
-            );
-        });
-        return data;
-      }),
-    initialPageParam: { userId: userId as string },
-    getNextPageParam: (lastPage) => lastPage.next,
-    enabled: !!userId,
   });
 };

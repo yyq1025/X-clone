@@ -71,9 +71,9 @@ export const getRepliesCountByPostId = async (postId: number) => {
 
 export const getPostsCountByUserId = async (userId: string) => {
   const { count, error } = await supabase
-    .from("valid_posts")
+    .from("user_valid_posts")
     .select("*", { count: "exact", head: true })
-    .eq("owner_id", userId);
+    .eq("user_id", userId);
   if (error) throw error;
   return count;
 };

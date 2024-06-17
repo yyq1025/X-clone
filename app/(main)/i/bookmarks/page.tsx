@@ -33,7 +33,6 @@ export default function Bookmarks() {
               <Post
                 key={bookmark.valid_posts.id}
                 postId={bookmark.valid_posts.id}
-                mode="withReplyTo"
                 className="border-b"
               />
             ),

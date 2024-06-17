@@ -1,5 +1,4 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import UserCard from "@/components/user/user-card";
 import { useUserById } from "@/lib/hooks/useUser";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
