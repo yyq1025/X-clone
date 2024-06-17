@@ -22,7 +22,7 @@ const Notification: FC<NotificationProps> = ({ notificationId }) => {
   const { data: recipient } = useUserById(notification?.recipient_id);
   const { data: post, isLoading } = usePostById(notification?.post_id);
 
-  if (!isLoading && !post?.deleted) return null;
+  if (!isLoading && post?.deleted) return null;
 
   return (
     <>

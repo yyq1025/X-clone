@@ -47,23 +47,14 @@ export const useAddPost = () => {
 export const useDeletePost = () => {
   return useMutation({
     mutationFn: logicDeletePost,
-    onSuccess: ({parent_id, owner_id}) => {
+    onSuccess: (post) => {
+      queryClient.setQueryData(["post", post.id], post);
       queryClient.invalidateQueries({
-        queryKey: ["posts", "parentId", parent_id],
+        queryKey: ["postsCount", post.owner_id],
       });
-      queryClient.invalidateQueries({
-        queryKey: ["postsCount", owner_id],
-      });
-      if (parent_id) {
+      if (post.parent_id) {
         queryClient.invalidateQueries({
-          queryKey: ["repliesCount", parent_id],
-        });
-        queryClient.invalidateQueries({
-          queryKey: ["replies", "userId", owner_id],
-        });
-      } else {
-        queryClient.invalidateQueries({
-          queryKey: ["posts", "userId", owner_id],
+          queryKey: ["repliesCount", post.parent_id],
         });
       }
     },
