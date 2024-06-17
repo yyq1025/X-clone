@@ -1,6 +1,6 @@
 # X-clone by Richard Yang
 
-Twitter clone web application based on Next.js and Supabase.
+Twitter/Threads clone web application based on Next.js and Supabase.
 
 [![TypeScript](https://img.shields.io/github/package-json/dependency-version/yyq1025/X-clone/dev/typescript?logo=typescript&logoColor=white&label=TypeScript&color=3178c6)](https://www.typescriptlang.org/)
 [![Next.js](https://img.shields.io/github/package-json/dependency-version/yyq1025/X-clone/next?style=flat&logo=nextdotjs&logoColor=white&label=Next.js&color=black)](https://nextjs.org/)
