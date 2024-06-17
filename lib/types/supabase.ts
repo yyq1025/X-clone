@@ -403,6 +403,21 @@ export type Database = {
       }
     }
     Functions: {
+      get_following_posts: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          action_created_at: string | null
+          content: string | null
+          created_at: string | null
+          deleted: boolean | null
+          id: number | null
+          mentions: string[] | null
+          owner_id: string | null
+          parent_id: number | null
+          type: string | null
+          user_id: string | null
+        }[]
+      }
       get_parent_posts: {
         Args: {
           parent_id: number

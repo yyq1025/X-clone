@@ -2,6 +2,7 @@
 
 import {
   createPost,
+  getFollowingPosts,
   getParentPosts,
   getPostById,
   getPosts,
@@ -17,6 +18,7 @@ import {
   useMutation,
   useQuery,
 } from "@tanstack/react-query";
+import { omit } from "lodash";
 
 export const useAddPost = () => {
   return useMutation({
@@ -147,8 +149,25 @@ export const useRepliesByUserId = (userId?: string) => {
         });
         return data;
       }),
-    initialPageParam: { userId: userId as string },
+    initialPageParam: { userId: userId! },
     getNextPageParam: (lastPage) => lastPage.next,
+    enabled: !!userId,
+  });
+};
+
+export const useFollowingPosts = (userId?: string) => {
+  return useQuery({
+    queryKey: ["followingPosts", userId],
+    queryFn: () =>
+      getFollowingPosts().then((posts) => {
+        posts.forEach((post) => {
+          queryClient.setQueryData(
+            ["post", post.id],
+            omit(post, ["type", "action_created_at", "user_id"]),
+          );
+        });
+        return posts;
+      }),
     enabled: !!userId,
   });
 };

@@ -40,7 +40,7 @@ export const useNotificationsByUserId = (userId?: string) => {
         });
         return data;
       }),
-    initialPageParam: { userId: userId as string },
+    initialPageParam: { userId: userId! },
     getNextPageParam: (lastPage) => lastPage.next,
     enabled: !!userId,
   });

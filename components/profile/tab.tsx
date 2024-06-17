@@ -13,7 +13,7 @@ const Tab: FC<TabProps> = ({ href, label, active }) => (
     href={href}
     replace
     scroll={false}
-    className="flex grow justify-center px-4"
+    className="flex grow justify-center px-4 transition-colors hover:bg-accent"
   >
     <div
       className={cn(

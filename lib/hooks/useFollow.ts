@@ -65,7 +65,7 @@ export const useUserFollowing = (userId?: string) => {
         });
         return users;
       }),
-    initialPageParam: { userId: userId as string },
+    initialPageParam: { userId: userId! },
     getNextPageParam: (lastPage) => lastPage.next,
   });
 };
@@ -83,7 +83,7 @@ export const useUserFollowers = (userId?: string) => {
         });
         return users;
       }),
-    initialPageParam: { userId: userId as string },
+    initialPageParam: { userId: userId! },
     getNextPageParam: (lastPage) => lastPage.next,
   });
 };
