@@ -119,6 +119,13 @@ const AvatarInput: FC<AvatarInputProps> = ({ initialImg, onChange }) => {
                     setCroppedAreaPixels(croppedPixels)
                   }
                   showGrid={false}
+                  style={{
+                    cropAreaStyle: {
+                      borderWidth: 4,
+                      borderColor: "hsl(var(--primary))",
+                      color: "rgba(230, 236, 240, 0.7)",
+                    },
+                  }}
                 />
               </div>
               <div className="flex items-center justify-center p-1">
