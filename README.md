@@ -24,9 +24,18 @@ Keep the modal even after refresh
 ![modal.gif](/docs/images/modal.gif)
 
 ### Crop Images Before Upload
+Crop avatars and banners before upload
+
+![crop.gif](/docs/images/crop.gif)
 
 ### Polling-based Notifications
+Stabilize server load during peak time
+
+![notification.gif](/docs/images/notification.gif)
 
 ### Logic Delete
+Keep parent/reply relations after posts are deleted
+
+![delete.gif](/docs/images/delete.gif)
 
 ## Todo
