@@ -38,7 +38,7 @@ const FormSchema = z.object({
 export default function ProfileModal() {
   const router = useRouter();
   const { userId } = useUserStore();
-  const { data: user } = useUserById(userId);
+  const { data: user, isLoading } = useUserById(userId);
   const updateUser = useUpdateUserById();
 
   const form = useForm<z.infer<typeof FormSchema>>({
@@ -108,17 +108,21 @@ export default function ProfileModal() {
               <div className="flex flex-col">
                 <div className="relative w-full border-2 border-white">
                   <div className="pb-[33.3%]" />
-                  <BannerInput
-                    onChange={(e) => form.setValue("bannerFile", e)}
-                    initialImg={user?.banner || ""}
-                  />
+                  {!isLoading && (
+                    <BannerInput
+                      onChange={(e) => form.setValue("bannerFile", e)}
+                      initialImg={user?.banner || ""}
+                    />
+                  )}
                 </div>
                 <div className="relative -mt-12 ml-4 max-w-32 rounded-full border-4 border-white">
                   <div className="pb-[100%]" />
-                  <AvatarInput
-                    onChange={(e) => form.setValue("avatarFile", e)}
-                    initialImg={user?.avatar || ""}
-                  />
+                  {!isLoading && (
+                    <AvatarInput
+                      onChange={(e) => form.setValue("avatarFile", e)}
+                      initialImg={user?.avatar || ""}
+                    />
+                  )}
                 </div>
                 <FormField
                   control={form.control}
