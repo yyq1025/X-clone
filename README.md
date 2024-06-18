@@ -15,10 +15,12 @@ Twitter/Threads clone web application based on Next.js and Supabase.
 
 ### Optimistic Updates
 Immediate update before the server responds
+
 ![update.gif](/docs/images/update.gif)
 
 ### Route-based Modals
 Keep the modal even after refresh
+
 ![modal.gif](/docs/images/modal.gif)
 
 ### Crop Images Before Upload
