@@ -15,27 +15,47 @@ Twitter/Threads clone web application based on Next.js and Supabase.
 
 ### Optimistic Updates
 Immediate update before the server responds
+<details>
+<summary>Example</summary>
+<br/>
 
 ![update.gif](/docs/images/update.gif)
+</details>
 
 ### Route-based Modals
 Keep the modal even after refresh
+<details>
+<summary>Example</summary>
+<br/>
 
 ![modal.gif](/docs/images/modal.gif)
+</details>
 
 ### Crop Images Before Upload
 Crop avatars and banners before upload
+<details>
+<summary>Example</summary>
+<br/>
 
 ![crop.gif](/docs/images/crop.gif)
+</details>
 
 ### Polling-based Notifications
 Stabilize server load during peak time
+<details>
+<summary>Example</summary>
+<br/>
 
 ![notification.gif](/docs/images/notification.gif)
+</details>
 
 ### Logic Delete
 Keep parent/reply relations after posts are deleted
+<details>
+<summary>Example</summary>
+<br/>
 
 ![delete.gif](/docs/images/delete.gif)
+</details>
 
 ## Todo
