@@ -15,10 +15,10 @@ export const getUserById = async (userId: string) => {
   return data;
 };
 
-export const getUserByUsername = async (username: string) => {
+export const getUserIdByUsername = async (username: string) => {
   const { data, error } = await supabase
     .from("users")
-    .select()
+    .select("id")
     .eq("username", username)
     .single();
   if (error) throw error;

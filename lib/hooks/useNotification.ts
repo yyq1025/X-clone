@@ -33,10 +33,48 @@ export const useNotificationsByUserId = (userId?: string) => {
             ["notification", notification.id],
             notification,
           );
-          queryClient.setQueryData(
-            ["post", notification.valid_posts?.id],
-            notification.valid_posts,
-          );
+          notification.post_id &&
+            queryClient.setQueryData(
+              ["postId", notification.post_id],
+              notification.valid_posts,
+            );
+          switch (notification.type) {
+            case "reply":
+              queryClient.invalidateQueries({
+                queryKey: [
+                  "postId",
+                  notification.valid_posts?.parent_id,
+                  "reply",
+                ],
+              });
+              queryClient.invalidateQueries({
+                queryKey: ["userId", notification.sender_id, "post"],
+              });
+              break;
+            case "follow":
+              queryClient.invalidateQueries({
+                queryKey: ["userId", notification.sender_id, "follow"],
+              });
+              queryClient.invalidateQueries({
+                queryKey: ["userId", notification.recipient_id, "follow"],
+              });
+              break;
+            case "like":
+              queryClient.invalidateQueries({
+                queryKey: ["postId", notification.post_id, "like"],
+              });
+              break;
+            case "repost":
+              queryClient.invalidateQueries({
+                queryKey: ["postId", notification.post_id, "repost"],
+              });
+              queryClient.invalidateQueries({
+                queryKey: ["userId", notification.sender_id, "post"],
+              });
+              break;
+            default:
+              break;
+          }
         });
         return data;
       }),

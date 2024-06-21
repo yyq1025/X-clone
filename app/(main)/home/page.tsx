@@ -2,8 +2,9 @@
 
 import Post from "@/components/post/post";
 import PostCreate from "@/components/post/post-create";
+import { useFollowingPosts } from "@/lib/hooks/useFollow";
 import { useInfiniteScroll } from "@/lib/hooks/useInfiniteScroll";
-import { useFollowingPosts, usePosts } from "@/lib/hooks/usePost";
+import { usePosts } from "@/lib/hooks/usePost";
 import { useUserStore } from "@/lib/stores/user";
 import { Content, List, Root, Trigger } from "@radix-ui/react-tabs";
 

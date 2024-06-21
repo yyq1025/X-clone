@@ -123,9 +123,3 @@ export const logicDeletePost = async (postId: number) => {
   if (error) throw error;
   return data;
 };
-
-export const getFollowingPosts = async () => {
-  const { data, error } = await supabase.rpc("get_following_posts");
-  if (error) throw error;
-  return data;
-}

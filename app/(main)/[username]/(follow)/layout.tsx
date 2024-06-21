@@ -2,8 +2,7 @@
 
 import BackButton from "@/components/nav/back-button";
 import Tab from "@/components/profile/tab";
-import { Button } from "@/components/ui/button";
-import { useUserByUsername } from "@/lib/hooks/useUser";
+import { useUserById, useUserIdByUsername } from "@/lib/hooks/useUser";
 import { useSelectedLayoutSegment } from "next/navigation";
 
 export default function FollowLayout({
@@ -15,7 +14,9 @@ export default function FollowLayout({
 }) {
   const segment = useSelectedLayoutSegment();
   const { username } = params;
-  const { data: user } = useUserByUsername(username);
+  const { data } = useUserIdByUsername(username);
+  const { data: user } = useUserById(data?.id);
+
   return (
     <>
       <div className="sticky top-0 z-[1] flex h-[53px] w-full items-center justify-center bg-white/85 px-4 backdrop-blur">

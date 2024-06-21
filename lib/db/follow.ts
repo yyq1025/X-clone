@@ -108,3 +108,9 @@ export const getUserFollowersByUserId = async ({
         : null,
   };
 };
+
+export const getFollowingPosts = async () => {
+  const { data, error } = await supabase.rpc("get_following_posts");
+  if (error) throw error;
+  return data;
+};

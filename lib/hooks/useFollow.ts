@@ -5,6 +5,7 @@ import {
   getFollowed,
   getFollowersCountByUserId,
   getFollowingCountByUserId,
+  getFollowingPosts,
   getUserFollowersByUserId,
   getUserFollowingByUserId,
   unfollow,
@@ -17,6 +18,7 @@ import {
   useMutation,
   useQuery,
 } from "@tanstack/react-query";
+import { omit } from "lodash";
 
 export const useFollowed = ({
   followerId,
@@ -38,7 +40,7 @@ export const useFollowed = ({
 
 export const useFollowingCount = (userId?: string) => {
   return useQuery({
-    queryKey: ["followingCount", userId],
+    queryKey: ["userId", userId, "follow", "followingCount"],
     queryFn: userId ? () => getFollowingCountByUserId(userId) : skipToken,
     enabled: !!userId,
   });
@@ -46,7 +48,7 @@ export const useFollowingCount = (userId?: string) => {
 
 export const useFollowersCount = (userId?: string) => {
   return useQuery({
-    queryKey: ["followersCount", userId],
+    queryKey: ["userId", userId, "follow", "followersCount"],
     queryFn: userId ? () => getFollowersCountByUserId(userId) : skipToken,
     enabled: !!userId,
   });
@@ -54,12 +56,12 @@ export const useFollowersCount = (userId?: string) => {
 
 export const useUserFollowing = (userId?: string) => {
   return useInfiniteQuery({
-    queryKey: ["following", userId],
+    queryKey: ["userId", userId, "follow", "following"],
     queryFn: ({ pageParam }) =>
       getUserFollowingByUserId(pageParam).then((users) => {
         users.following.forEach((following) => {
           queryClient.setQueryData(
-            ["user", "userId", following.users.id],
+            ["userId", following.users.id],
             following.users,
           );
         });
@@ -72,12 +74,12 @@ export const useUserFollowing = (userId?: string) => {
 
 export const useUserFollowers = (userId?: string) => {
   return useInfiniteQuery({
-    queryKey: ["followers", userId],
+    queryKey: ["userId", userId, "follow", "followers"],
     queryFn: ({ pageParam }) =>
       getUserFollowersByUserId(pageParam).then((users) => {
         users.followers.forEach((follower) => {
           queryClient.setQueryData(
-            ["user", "userId", follower.users.id],
+            ["userId", follower.users.id],
             follower.users,
           );
         });
@@ -103,11 +105,11 @@ export const useFollow = () => {
         true,
       );
       const previousFollowingCount = await optimiticUpdate(
-        ["followingCount", followerId],
+        ["userId", followerId, "follow", "followingCount"],
         (prev: number) => prev + 1,
       );
       const previousFollowersCount = await optimiticUpdate(
-        ["followersCount", followingId],
+        ["userId", followingId, "follow", "followersCount"],
         (prev: number) => prev + 1,
       );
       return {
@@ -122,26 +124,20 @@ export const useFollow = () => {
         context.previousFollowed,
       );
       queryClient.setQueryData(
-        ["followingCount", followerId],
+        ["userId", followerId, "follow", "followingCount"],
         context.previousFollowingCount,
       );
       queryClient.setQueryData(
-        ["followersCount", followingId],
+        ["userId", followingId, "follow", "followersCount"],
         context.previousFollowersCount,
       );
     },
     onSuccess: (_data, { followerId, followingId }) => {
       queryClient.invalidateQueries({
-        queryKey: ["followingCount", followerId],
+        queryKey: ["userId", followerId, "follow"],
       });
       queryClient.invalidateQueries({
-        queryKey: ["following", followerId],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["followersCount", followingId],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["followers", followingId],
+        queryKey: ["userId", followingId, "follow"],
       });
     },
   });
@@ -162,11 +158,11 @@ export const useUnfollow = () => {
         false,
       );
       const previousFollowingCount = await optimiticUpdate(
-        ["followingCount", followerId],
+        ["userId", followerId, "follow", "followingCount"],
         (prev: number) => prev - 1,
       );
       const previousFollowersCount = await optimiticUpdate(
-        ["followersCount", followingId],
+        ["userId", followingId, "follow", "followersCount"],
         (prev: number) => prev - 1,
       );
       return {
@@ -181,27 +177,38 @@ export const useUnfollow = () => {
         context.previousFollowed,
       );
       queryClient.setQueryData(
-        ["followingCount", followerId],
+        ["userId", followerId, "follow", "followingCount"],
         context.previousFollowingCount,
       );
       queryClient.setQueryData(
-        ["followersCount", followingId],
+        ["userId", followingId, "follow", "followersCount"],
         context.previousFollowersCount,
       );
     },
     onSuccess: (_data, { followerId, followingId }) => {
       queryClient.invalidateQueries({
-        queryKey: ["followingCount", followerId],
+        queryKey: ["userId", followerId, "follow"],
       });
       queryClient.invalidateQueries({
-        queryKey: ["following", followerId],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["followersCount", followingId],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["followers", followingId],
+        queryKey: ["userId", followingId, "follow"],
       });
     },
+  });
+};
+
+export const useFollowingPosts = (userId?: string) => {
+  return useQuery({
+    queryKey: ["userId", userId, "follow", "followingPosts"],
+    queryFn: () =>
+      getFollowingPosts().then((posts) => {
+        posts.forEach((post) => {
+          queryClient.setQueryData(
+            ["postId", post.id],
+            omit(post, ["type", "action_created_at", "user_id"]),
+          );
+        });
+        return posts;
+      }),
+    enabled: !!userId,
   });
 };

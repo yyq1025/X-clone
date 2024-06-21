@@ -2,7 +2,6 @@
 
 import {
   createPost,
-  getFollowingPosts,
   getParentPosts,
   getPostById,
   getPosts,
@@ -18,30 +17,17 @@ import {
   useMutation,
   useQuery,
 } from "@tanstack/react-query";
-import { omit } from "lodash";
 
 export const useAddPost = () => {
   return useMutation({
     mutationFn: createPost,
     onSuccess: (_data, { parentId, ownerId }) => {
       queryClient.invalidateQueries({
-        queryKey: ["posts", "parentId", parentId],
+        queryKey: ["postId", parentId, "reply"],
       });
       queryClient.invalidateQueries({
-        queryKey: ["postsCount", ownerId],
+        queryKey: ["userId", ownerId, "post"],
       });
-      if (parentId) {
-        queryClient.invalidateQueries({
-          queryKey: ["repliesCount", parentId],
-        });
-        queryClient.invalidateQueries({
-          queryKey: ["replies", "userId", ownerId],
-        });
-      } else {
-        queryClient.invalidateQueries({
-          queryKey: ["posts", "userId", ownerId],
-        });
-      }
     },
   });
 };
@@ -50,22 +36,20 @@ export const useDeletePost = () => {
   return useMutation({
     mutationFn: logicDeletePost,
     onSuccess: (post) => {
-      queryClient.setQueryData(["post", post.id], post);
+      queryClient.setQueryData(["postId", post.id], post);
       queryClient.invalidateQueries({
-        queryKey: ["postsCount", post.owner_id],
+        queryKey: ["userId", post.owner_id, "post"],
       });
-      if (post.parent_id) {
-        queryClient.invalidateQueries({
-          queryKey: ["repliesCount", post.parent_id],
-        });
-      }
+      queryClient.invalidateQueries({
+        queryKey: ["postId", post.parent_id, "reply"],
+      });
     },
   });
 };
 
 export const usePostById = (postId?: number | null) => {
   return useQuery({
-    queryKey: ["post", postId],
+    queryKey: ["postId", postId],
     queryFn: postId ? () => getPostById(postId) : skipToken,
     enabled: !!postId,
   });
@@ -77,11 +61,11 @@ export const usePosts = () => {
 
 export const useRepliesByParentId = (parentId?: number) => {
   return useInfiniteQuery({
-    queryKey: ["posts", "parentId", parentId],
+    queryKey: ["postId", parentId, "reply", "replies"],
     queryFn: ({ pageParam }) =>
       getPosts(pageParam).then((data) => {
         data.posts.forEach((post) => {
-          queryClient.setQueryData(["post", post.id], post);
+          queryClient.setQueryData(["postId", post.id], post);
         });
         return data;
       }),
@@ -93,11 +77,11 @@ export const useRepliesByParentId = (parentId?: number) => {
 
 export const usePostsByUserId = (userId?: string) => {
   return useInfiniteQuery({
-    queryKey: ["posts", "userId", userId],
+    queryKey: ["userId", userId, "post", "posts"],
     queryFn: ({ pageParam }) =>
       getPosts(pageParam).then((data) => {
         data.posts.forEach((post) => {
-          queryClient.setQueryData(["post", post.id], post);
+          queryClient.setQueryData(["postId", post.id], post);
         });
         return data;
       }),
@@ -109,7 +93,7 @@ export const usePostsByUserId = (userId?: string) => {
 
 export const useRepliesCount = (postId?: number) => {
   return useQuery({
-    queryKey: ["repliesCount", postId],
+    queryKey: ["postId", postId, "reply", "repliesCount"],
     queryFn: postId ? () => getRepliesCountByPostId(postId) : skipToken,
     enabled: !!postId,
   });
@@ -117,7 +101,7 @@ export const useRepliesCount = (postId?: number) => {
 
 export const usePostsCountByUserId = (userId?: string) => {
   return useQuery({
-    queryKey: ["postsCount", userId],
+    queryKey: ["userId", userId, "post", "postsCount"],
     queryFn: userId ? () => getPostsCountByUserId(userId) : skipToken,
     enabled: !!userId,
   });
@@ -130,7 +114,7 @@ export const useParentPosts = (postId?: number | null) => {
       ? () =>
           getParentPosts(postId).then((posts) => {
             posts.forEach((post) => {
-              queryClient.setQueryData(["post", post.id], post);
+              queryClient.setQueryData(["postId", post.id], post);
             });
             return posts;
           })
@@ -141,33 +125,16 @@ export const useParentPosts = (postId?: number | null) => {
 
 export const useRepliesByUserId = (userId?: string) => {
   return useInfiniteQuery({
-    queryKey: ["replies", "userId", userId],
+    queryKey: ["userId", userId, "post", "replies"],
     queryFn: ({ pageParam }) =>
       getRepliesByUserId(pageParam).then((data) => {
         data.posts.forEach((post) => {
-          !post.deleted && queryClient.setQueryData(["post", post.id], post);
+          !post.deleted && queryClient.setQueryData(["postId", post.id], post);
         });
         return data;
       }),
     initialPageParam: { userId: userId! },
     getNextPageParam: (lastPage) => lastPage.next,
-    enabled: !!userId,
-  });
-};
-
-export const useFollowingPosts = (userId?: string) => {
-  return useQuery({
-    queryKey: ["followingPosts", userId],
-    queryFn: () =>
-      getFollowingPosts().then((posts) => {
-        posts.forEach((post) => {
-          queryClient.setQueryData(
-            ["post", post.id],
-            omit(post, ["type", "action_created_at", "user_id"]),
-          );
-        });
-        return posts;
-      }),
     enabled: !!userId,
   });
 };

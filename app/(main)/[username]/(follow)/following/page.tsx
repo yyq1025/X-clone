@@ -3,7 +3,7 @@
 import UserInfo from "@/components/user/user-info";
 import { useUserFollowing } from "@/lib/hooks/useFollow";
 import { useInfiniteScroll } from "@/lib/hooks/useInfiniteScroll";
-import { useUserByUsername } from "@/lib/hooks/useUser";
+import { useUserById, useUserIdByUsername } from "@/lib/hooks/useUser";
 
 export default function Following({
   params,
@@ -11,8 +11,9 @@ export default function Following({
   params: { username: string };
 }) {
   const { username } = params;
-  const { data: user } = useUserByUsername(username);
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
+  const { data } = useUserIdByUsername(username);
+  const {data: user} = useUserById(data?.id)
+  const { data: userFollowing, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useUserFollowing(user?.id);
 
   useInfiniteScroll({
@@ -23,7 +24,7 @@ export default function Following({
 
   return (
     <>
-      {data?.pages.map((page) =>
+      {userFollowing?.pages.map((page) =>
         page.following.map((following) => (
           <UserInfo key={following.users.id} uid={following.users.id} />
         )),

@@ -8,7 +8,7 @@ import FollowButton from "@/components/user/follow-button";
 import FollowerCount from "@/components/user/follower-count";
 import FollowingCount from "@/components/user/following-count";
 import { usePostsCountByUserId } from "@/lib/hooks/usePost";
-import { useUserByUsername } from "@/lib/hooks/useUser";
+import { useUserById, useUserIdByUsername } from "@/lib/hooks/useUser";
 import { useUserStore } from "@/lib/stores/user";
 import { CalendarDaysIcon, MapPinIcon } from "@heroicons/react/24/outline";
 import dayjs from "dayjs";
@@ -27,7 +27,8 @@ export default function ProfileLayout({
   const { userId } = useUserStore();
   const segment = useSelectedLayoutSegment();
 
-  const { data: user } = useUserByUsername(username);
+  const { data } = useUserIdByUsername(username);
+  const { data: user } = useUserById(data?.id);
   const { data: postsCount } = usePostsCountByUserId(user?.id);
 
   return (

@@ -46,14 +46,6 @@ export const unbookmark = async ({
   if (error) throw error;
 };
 
-export const removeAllBookmarksByUserId = async (userId: string) => {
-  const { error } = await supabase
-    .from("bookmarks")
-    .delete()
-    .eq("user_id", userId);
-  if (error) throw error;
-};
-
 export const getBookmarksByUserId = async ({
   userId,
   before,

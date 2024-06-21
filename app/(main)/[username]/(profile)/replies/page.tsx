@@ -3,11 +3,12 @@
 import Post from "@/components/post/post";
 import { useInfiniteScroll } from "@/lib/hooks/useInfiniteScroll";
 import { useRepliesByUserId } from "@/lib/hooks/usePost";
-import { useUserByUsername } from "@/lib/hooks/useUser";
+import { useUserById, useUserIdByUsername } from "@/lib/hooks/useUser";
 
 export default function Replies({ params }: { params: { username: string } }) {
   const { username } = params;
-  const { data: user } = useUserByUsername(username);
+  const { data } = useUserIdByUsername(username);
+  const { data: user } = useUserById(data?.id);
   const {
     data: replies,
     fetchNextPage,
@@ -25,11 +26,7 @@ export default function Replies({ params }: { params: { username: string } }) {
     <>
       {replies?.pages.map((page) =>
         page.posts.map((post) => (
-          <Post
-            key={post.id}
-            postId={post.id}
-            className="border-b"
-          />
+          <Post key={post.id} postId={post.id} className="border-b" />
         )),
       )}
     </>

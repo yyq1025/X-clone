@@ -5,7 +5,6 @@ import {
   getBookmarked,
   getBookmarksByUserId,
   getBookmarksCount,
-  removeAllBookmarksByUserId,
   unbookmark,
 } from "@/lib/db/bookmark";
 import { optimiticUpdate } from "@/lib/hooks/optimistic";
@@ -36,7 +35,7 @@ export const useBookmarked = ({
 
 export const useBookmarksCount = (postId?: number) => {
   return useQuery({
-    queryKey: ["bookmarksCount", postId],
+    queryKey: ["postId", postId, "bookmark", "bookmarksCount"],
     queryFn: postId ? () => getBookmarksCount(postId) : skipToken,
     enabled: !!postId,
   });
@@ -44,13 +43,13 @@ export const useBookmarksCount = (postId?: number) => {
 
 export const useBookmarksByUserId = (userId?: string) => {
   return useInfiniteQuery({
-    queryKey: ["bookmarks", userId],
+    queryKey: ["userId", userId, "bookmark", "bookmarks"],
     queryFn: ({ pageParam }) =>
       getBookmarksByUserId(pageParam).then((data) => {
         data.bookmarks.forEach((bookmark) => {
           bookmark.valid_posts &&
             queryClient.setQueryData(
-              ["post", bookmark.valid_posts.id],
+              ["postId", bookmark.valid_posts.id],
               bookmark.valid_posts,
             );
         });
@@ -72,7 +71,7 @@ export const useBookmark = () => {
         true,
       );
       const previousBookmarksCount = await optimiticUpdate(
-        ["bookmarksCount", postId],
+        ["postId", postId, "bookmark", "bookmarksCount"],
         (prev: number) => prev + 1,
       );
       return { previousBookmarked, previousBookmarksCount };
@@ -83,13 +82,17 @@ export const useBookmark = () => {
         context.previousBookmarked,
       );
       queryClient.setQueryData(
-        ["bookmarksCount", postId],
+        ["postId", postId, "bookmark", "bookmarksCount"],
         context.previousBookmarksCount,
       );
     },
     onSuccess: (_data, { userId, postId }) => {
-      queryClient.invalidateQueries({ queryKey: ["bookmarks", userId] });
-      queryClient.invalidateQueries({ queryKey: ["bookmarksCount", postId] });
+      queryClient.invalidateQueries({
+        queryKey: ["userId", userId, "bookmark"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["postId", postId, "bookmark"],
+      });
     },
   });
 };
@@ -104,7 +107,7 @@ export const useUnbookmark = () => {
         false,
       );
       const previousBookmarksCount = await optimiticUpdate(
-        ["bookmarksCount", postId],
+        ["postId", postId, "bookmark", "bookmarksCount"],
         (prev: number) => prev - 1,
       );
       return { previousBookmarked, previousBookmarksCount };
@@ -115,22 +118,17 @@ export const useUnbookmark = () => {
         context.previousBookmarked,
       );
       queryClient.setQueryData(
-        ["bookmarksCount", postId],
+        ["postId", postId, "bookmark", "bookmarksCount"],
         context.previousBookmarksCount,
       );
     },
     onSuccess: (_data, { userId, postId }) => {
-      queryClient.invalidateQueries({ queryKey: ["bookmarks", userId] });
-      queryClient.invalidateQueries({ queryKey: ["bookmarksCount", postId] });
-    },
-  });
-};
-
-export const useRemoveAllBookmarks = () => {
-  return useMutation({
-    mutationFn: removeAllBookmarksByUserId,
-    onSuccess: (_data, userId) => {
-      queryClient.invalidateQueries({ queryKey: ["bookmarks", userId] });
+      queryClient.invalidateQueries({
+        queryKey: ["userId", userId, "bookmark"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["postId", postId, "bookmark"],
+      });
     },
   });
 };

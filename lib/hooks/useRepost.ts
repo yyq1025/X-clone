@@ -18,7 +18,7 @@ import {
 
 export const useRepostCountByPostId = (postId?: number) => {
   return useQuery({
-    queryKey: ["repostCount", postId],
+    queryKey: ["postId", postId, "repost", "repostCount"],
     queryFn: postId ? () => getRepostCountByPostId(postId) : skipToken,
     enabled: !!postId,
   });
@@ -51,7 +51,7 @@ export const useRepost = () => {
         true,
       );
       const previousRepostCount = await optimiticUpdate(
-        ["repostCount", postId],
+        ["postId", postId, "repost", "repostCount"],
         (prev: number) => prev + 1,
       );
 
@@ -63,16 +63,16 @@ export const useRepost = () => {
         context.previousReposted,
       );
       queryClient.setQueryData(
-        ["repostCount", postId],
+        ["postId", postId, "repost", "repostCount"],
         context.ppreviousRepostCount,
       );
     },
     onSuccess: (_data, { userId, postId }) => {
       queryClient.invalidateQueries({
-        queryKey: ["repostedPosts", userId],
+        queryKey: ["userId", userId, "post"],
       });
       queryClient.invalidateQueries({
-        queryKey: ["repostCount", postId],
+        queryKey: ["postId", postId, "repost"],
       });
     },
   });
@@ -88,7 +88,7 @@ export const useUnrepost = () => {
         false,
       );
       const previousRepostCount = await optimiticUpdate(
-        ["repostCount", postId],
+        ["postId", postId, "repost", "repostCount"],
         (prev: number) => prev - 1,
       );
 
@@ -100,16 +100,16 @@ export const useUnrepost = () => {
         context.previousReposted,
       );
       queryClient.setQueryData(
-        ["repostCount", postId],
+        ["postId", postId, "repost", "repostCount"],
         context.ppreviousRepostCount,
       );
     },
     onSuccess: (_data, { userId, postId }) => {
       queryClient.invalidateQueries({
-        queryKey: ["repostedPosts", userId],
+        queryKey: ["userId", userId, "post"],
       });
       queryClient.invalidateQueries({
-        queryKey: ["repostCount", postId],
+        queryKey: ["postId", postId, "repost"],
       });
     },
   });
@@ -117,13 +117,13 @@ export const useUnrepost = () => {
 
 export const useRepostedPostsByUserId = (userId?: string) => {
   return useInfiniteQuery({
-    queryKey: ["repostedPosts", userId],
+    queryKey: ["userId", userId, "post", "repostedPosts"],
     queryFn: ({ pageParam }) =>
       getRepostedPostsByUserId(pageParam).then((data) => {
         data.repostedPosts.forEach((repost) => {
           repost.valid_posts &&
             queryClient.setQueryData(
-              ["post", repost.valid_posts.id],
+              ["postId", repost.valid_posts.id],
               repost.valid_posts,
             );
         });

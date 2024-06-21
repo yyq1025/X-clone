@@ -8,15 +8,11 @@ import {
 } from "@/lib/db/like";
 import { optimiticUpdate } from "@/lib/hooks/optimistic";
 import { queryClient } from "@/lib/queryClient";
-import {
-  skipToken,
-  useMutation,
-  useQuery,
-} from "@tanstack/react-query";
+import { skipToken, useMutation, useQuery } from "@tanstack/react-query";
 
 export const useLikesCountByPostId = (postId?: number) => {
   return useQuery({
-    queryKey: ["likesCount", "postId", postId],
+    queryKey: ["postId", postId, "like", "likesCount"],
     queryFn: postId ? () => getLikesCountByPostId(postId) : skipToken,
     enabled: !!postId,
   });
@@ -49,7 +45,7 @@ export const useLikePost = () => {
         true,
       );
       const previousLikesCount = await optimiticUpdate(
-        ["likesCount", "postId", postId],
+        ["postId", postId, "like", "likesCount"],
         (prev: number) => prev + 1,
       );
 
@@ -61,16 +57,13 @@ export const useLikePost = () => {
         context.previousLiked,
       );
       queryClient.setQueryData(
-        ["likesCount", "postId", postId],
+        ["postId", postId, "like", "likesCount"],
         context.previousLikesCount,
       );
     },
-    onSuccess: (_data, { userId, postId }) => {
+    onSuccess: (_data, { postId }) => {
       queryClient.invalidateQueries({
-        queryKey: ["likedPosts", "userId", userId],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["likesCount", "postId", postId],
+        queryKey: ["postId", postId, "like"],
       });
     },
   });
@@ -86,7 +79,7 @@ export const useUnlikePost = () => {
         false,
       );
       const previousLikesCount = await optimiticUpdate(
-        ["likesCount", "postId", postId],
+        ["postId", postId, "like", "likesCount"],
         (prev: number) => prev - 1,
       );
 
@@ -98,16 +91,13 @@ export const useUnlikePost = () => {
         context.previousLiked,
       );
       queryClient.setQueryData(
-        ["likesCount", "postId", postId],
+        ["postId", postId, "like", "likesCount"],
         context.previousLikesCount,
       );
     },
-    onSuccess: (_data, { userId, postId }) => {
+    onSuccess: (_data, { postId }) => {
       queryClient.invalidateQueries({
-        queryKey: ["likedPosts", "userId", userId],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["likesCount", "postId", postId],
+        queryKey: ["postId", postId, "like"],
       });
     },
   });

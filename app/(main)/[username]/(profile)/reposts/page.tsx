@@ -3,11 +3,12 @@
 import Post from "@/components/post/post";
 import { useInfiniteScroll } from "@/lib/hooks/useInfiniteScroll";
 import { useRepostedPostsByUserId } from "@/lib/hooks/useRepost";
-import { useUserByUsername } from "@/lib/hooks/useUser";
+import { useUserById, useUserIdByUsername } from "@/lib/hooks/useUser";
 
 export default function Reposts({ params }: { params: { username: string } }) {
   const { username } = params;
-  const { data: user } = useUserByUsername(username);
+  const { data } = useUserIdByUsername(username);
+  const { data: user } = useUserById(data?.id);
   const {
     data: repostedPosts,
     fetchNextPage,

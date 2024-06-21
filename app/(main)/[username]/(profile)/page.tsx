@@ -3,11 +3,12 @@
 import Post from "@/components/post/post";
 import { useInfiniteScroll } from "@/lib/hooks/useInfiniteScroll";
 import { usePostsByUserId } from "@/lib/hooks/usePost";
-import { useUserByUsername } from "@/lib/hooks/useUser";
+import { useUserById, useUserIdByUsername } from "@/lib/hooks/useUser";
 
 export default function Posts({ params }: { params: { username: string } }) {
   const { username } = params;
-  const { data: user } = useUserByUsername(username);
+  const { data } = useUserIdByUsername(username);
+  const { data: user } = useUserById(data?.id);
   const {
     data: posts,
     fetchNextPage,
