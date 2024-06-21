@@ -7,9 +7,9 @@ import type { Tables } from "@/lib/types/supabase";
 export const follow = async ({
   follower_id,
   following_id,
-}: Pick<Tables<"follows">, "follower_id" | "following_id">) => {
+}: Pick<Tables<"follow">, "follower_id" | "following_id">) => {
   const { error } = await supabase
-    .from("follows")
+    .from("follow")
     .upsert({ follower_id, following_id }, { ignoreDuplicates: true });
   if (error) throw error;
 };
@@ -17,9 +17,9 @@ export const follow = async ({
 export const unfollow = async ({
   follower_id,
   following_id,
-}: Pick<Tables<"follows">, "follower_id" | "following_id">) => {
+}: Pick<Tables<"follow">, "follower_id" | "following_id">) => {
   const { error } = await supabase
-    .from("follows")
+    .from("follow")
     .delete()
     .match({ follower_id, following_id });
   if (error) throw error;
@@ -28,9 +28,9 @@ export const unfollow = async ({
 export const getFollowed = async ({
   follower_id,
   following_id,
-}: Pick<Tables<"follows">, "follower_id" | "following_id">) => {
+}: Pick<Tables<"follow">, "follower_id" | "following_id">) => {
   const { count, error } = await supabase
-    .from("follows")
+    .from("follow")
     .select("*", { count: "exact", head: true })
     .match({ follower_id, following_id });
   if (error) throw error;
@@ -39,7 +39,7 @@ export const getFollowed = async ({
 
 export const getFollowingCountByUserId = async (userId: string) => {
   const { count, error } = await supabase
-    .from("follows")
+    .from("follow")
     .select("*", { count: "exact", head: true })
     .eq("follower_id", userId);
   if (error) throw error;
@@ -48,7 +48,7 @@ export const getFollowingCountByUserId = async (userId: string) => {
 
 export const getFollowersCountByUserId = async (userId: string) => {
   const { count, error } = await supabase
-    .from("follows")
+    .from("follow")
     .select("*", { count: "exact", head: true })
     .eq("following_id", userId);
   if (error) throw error;
@@ -63,14 +63,14 @@ export const getUserFollowingByUserId = async ({
   before?: number;
 }) => {
   let query = supabase
-    .from("follows")
+    .from("follow")
     .select("*,users:following_id (*)")
     .eq("follower_id", userId);
   if (before) query = query.lt("id", before);
   const { data, error } = await query
     .order("id", { ascending: false })
     .limit(PAGE_SIZE)
-    .returns<(Tables<"follows"> & { users: Tables<"users"> })[]>();
+    .returns<(Tables<"follow"> & { users: Tables<"users"> })[]>();
   if (error) throw error;
 
   return {
@@ -90,14 +90,14 @@ export const getUserFollowersByUserId = async ({
   before?: number;
 }) => {
   let query = supabase
-    .from("follows")
+    .from("follow")
     .select("*,users:follower_id (*)")
     .eq("following_id", userId);
   if (before) query = query.lt("id", before);
   const { data, error } = await query
     .order("id", { ascending: false })
     .limit(PAGE_SIZE)
-    .returns<(Tables<"follows"> & { users: Tables<"users"> })[]>();
+    .returns<(Tables<"follow"> & { users: Tables<"users"> })[]>();
   if (error) throw error;
 
   return {

@@ -5,7 +5,7 @@ import type { Tables } from "@/lib/types/supabase";
 
 export const getLikesCountByPostId = async (postId: number) => {
   const { count, error } = await supabase
-    .from("likes")
+    .from("like")
     .select("valid_posts(*)", { count: "exact", head: true })
     .eq("post_id", postId);
   if (error) throw error;
@@ -15,9 +15,9 @@ export const getLikesCountByPostId = async (postId: number) => {
 export const getLiked = async ({
   post_id,
   user_id,
-}: Pick<Tables<"likes">, "post_id" | "user_id">) => {
+}: Pick<Tables<"like">, "post_id" | "user_id">) => {
   const { count, error } = await supabase
-    .from("likes")
+    .from("like")
     .select("valid_posts(*)", { count: "exact", head: true })
     .match({ post_id, user_id });
   if (error) throw error;
@@ -27,9 +27,9 @@ export const getLiked = async ({
 export const likePost = async ({
   post_id,
   user_id,
-}: Pick<Tables<"likes">, "post_id" | "user_id">) => {
+}: Pick<Tables<"like">, "post_id" | "user_id">) => {
   const { error } = await supabase
-    .from("likes")
+    .from("like")
     .upsert({ post_id, user_id }, { ignoreDuplicates: true });
   if (error) throw error;
 };
@@ -37,9 +37,9 @@ export const likePost = async ({
 export const unlikePost = async ({
   post_id,
   user_id,
-}: Pick<Tables<"likes">, "post_id" | "user_id">) => {
+}: Pick<Tables<"like">, "post_id" | "user_id">) => {
   const { error } = await supabase
-    .from("likes")
+    .from("like")
     .delete()
     .match({ post_id, user_id });
   if (error) throw error;

@@ -9,7 +9,7 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      bookmarks: {
+      bookmark: {
         Row: {
           created_at: string
           id: number
@@ -52,7 +52,7 @@ export type Database = {
           },
         ]
       }
-      follows: {
+      follow: {
         Row: {
           created_at: string
           follower_id: string
@@ -88,7 +88,7 @@ export type Database = {
           },
         ]
       }
-      likes: {
+      like: {
         Row: {
           created_at: string
           id: number

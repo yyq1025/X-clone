@@ -7,9 +7,9 @@ import type { Tables } from "@/lib/types/supabase";
 export const getBookmarked = async ({
   user_id,
   post_id,
-}: Pick<Tables<"bookmarks">, "user_id" | "post_id">) => {
+}: Pick<Tables<"bookmark">, "user_id" | "post_id">) => {
   const { count, error } = await supabase
-    .from("bookmarks")
+    .from("bookmark")
     .select("valid_posts(*)", { count: "exact", head: true })
     .match({ user_id, post_id });
   if (error) throw error;
@@ -18,7 +18,7 @@ export const getBookmarked = async ({
 
 export const getBookmarksCount = async (postId: number) => {
   const { count, error } = await supabase
-    .from("bookmarks")
+    .from("bookmark")
     .select("valid_posts(*)", { count: "exact", head: true })
     .eq("post_id", postId);
   if (error) throw error;
@@ -28,9 +28,9 @@ export const getBookmarksCount = async (postId: number) => {
 export const bookmark = async ({
   user_id,
   post_id,
-}: Pick<Tables<"bookmarks">, "user_id" | "post_id">) => {
+}: Pick<Tables<"bookmark">, "user_id" | "post_id">) => {
   const { error } = await supabase
-    .from("bookmarks")
+    .from("bookmark")
     .upsert({ user_id, post_id }, { ignoreDuplicates: true });
   if (error) throw error;
 };
@@ -38,9 +38,9 @@ export const bookmark = async ({
 export const unbookmark = async ({
   user_id,
   post_id,
-}: Pick<Tables<"bookmarks">, "user_id" | "post_id">) => {
+}: Pick<Tables<"bookmark">, "user_id" | "post_id">) => {
   const { error } = await supabase
-    .from("bookmarks")
+    .from("bookmark")
     .delete()
     .match({ user_id, post_id });
   if (error) throw error;
@@ -54,7 +54,7 @@ export const getBookmarksByUserId = async ({
   before?: number;
 }) => {
   let query = supabase
-    .from("bookmarks")
+    .from("bookmark")
     .select("*, valid_posts(*)")
     .eq("user_id", userId);
   if (before) query = query.lt("id", before);
