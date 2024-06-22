@@ -58,4 +58,8 @@ Keep parent/reply relations after posts are deleted
 ![delete.gif](/docs/images/delete.gif)
 </details>
 
+## Database Design
+
+[![X-clone.png](/docs/images/X-clone.png)](https://dbdiagram.io/d/X-clone-6676ef015a764b3c72253078)
+
 ## Todo
