@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@hcaptcha/react-hcaptcha": "1.10.2",
+    "@hcaptcha/react-hcaptcha": "1.10.3",
     "@heroicons/react": "2.1.5",
     "@hookform/resolvers": "3.9.0",
     "@radix-ui/react-alert-dialog": "1.1.1",
