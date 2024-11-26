@@ -24,7 +24,7 @@
     "@radix-ui/react-tabs": "1.1.1",
     "@supabase/supabase-js": "2.46.1",
     "@tanstack/react-query": "5.61.3",
-    "class-variance-authority": "0.7.0",
+    "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
     "dayjs": "1.11.13",
     "lodash": "4.17.21",
