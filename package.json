@@ -46,7 +46,7 @@
     "@ianvs/prettier-plugin-sort-imports": "4.4.0",
     "@types/lodash": "4.17.13",
     "@types/node": "20.17.10",
-    "@types/react": "18.3.17",
+    "@types/react": "18.3.18",
     "@types/react-dom": "18.3.5",
     "eslint": "8.57.1",
     "eslint-config-next": "14.2.21",
