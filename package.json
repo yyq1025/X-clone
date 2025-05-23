@@ -48,7 +48,7 @@
     "@types/node": "22.15.21",
     "@types/react": "18.3.22",
     "@types/react-dom": "18.3.7",
-    "eslint": "9.23.0",
+    "eslint": "9.27.0",
     "eslint-config-next": "14.2.29",
     "eslint-config-prettier": "9.1.0",
     "postcss": "8.5.3",
